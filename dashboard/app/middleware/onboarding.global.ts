@@ -10,11 +10,11 @@ export default defineNuxtRouteMiddleware((to) => {
 
   // If NOT completed and trying to access dashboard, redirect to onboarding start
   if (!store.completed && to.path === '/dashboard') {
-    return navigateTo('/onboarding/goal')
+    return navigateTo('/onboarding/')
   }
   
   // If at root, redirect to onboarding or dashboard
   if (to.path === '/') {
-    return store.completed ? navigateTo('/dashboard') : navigateTo('/onboarding/goal')
+    return store.completed ? navigateTo('/dashboard') : navigateTo('/onboarding/')
   }
 })
