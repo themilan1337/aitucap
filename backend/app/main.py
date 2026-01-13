@@ -1,10 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
 
 from app.config import settings
 from app.database import close_db
+from app.services.redis_service import redis_service
+from app.middleware.rate_limit import rate_limit_middleware
 
 # Configure logging
 logging.basicConfig(
@@ -25,12 +27,16 @@ async def lifespan(app: FastAPI):
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'configured'}")
 
+    # Initialize Redis
+    await redis_service.connect()
+
     yield
 
     # Shutdown
     logger.info("🛑 Shutting down MuscleUp Vision API...")
     await close_db()
-    logger.info("Database connections closed")
+    await redis_service.close()
+    logger.info("Connections closed")
 
 
 # Create FastAPI application
@@ -43,14 +49,24 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS
+# Configure CORS with credentials support
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=True,  # CRITICAL: Required for cookies
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allow_headers=["Content-Type", "X-CSRF-Token"],  # Allow CSRF header
+    expose_headers=["X-CSRF-Token"],  # Expose CSRF token to frontend
 )
+
+
+# Add rate limiting middleware
+@app.middleware("http")
+async def add_rate_limiting(request: Request, call_next):
+    """Apply rate limiting to auth endpoints"""
+    await rate_limit_middleware(request)
+    response = await call_next(request)
+    return response
 
 
 # Health check endpoint

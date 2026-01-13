@@ -1,6 +1,8 @@
+import uuid
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 from jose import JWTError, jwt
+from itsdangerous import URLSafeTimedSerializer
 from app.config import settings
 import httpx
 from google.oauth2 import id_token
@@ -9,28 +11,56 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class AuthService:
     """Service for handling authentication and tokens"""
 
+    def __init__(self):
+        self.csrf_serializer = URLSafeTimedSerializer(settings.CSRF_SECRET_KEY)
+
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-        """Create a new JWT access token"""
+        """Create a new JWT access token (NO JTI - short-lived, stateless)"""
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
             expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        
-        to_encode.update({"exp": expire, "type": "access"})
+
+        to_encode.update({
+            "exp": expire,
+            "type": "access",
+            "iat": datetime.utcnow()
+        })
         return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
     @staticmethod
-    def create_refresh_token(data: dict) -> str:
-        """Create a new JWT refresh token"""
+    def create_refresh_token(data: dict, remember_me: bool = False) -> Tuple[str, str, int]:
+        """
+        Create a new JWT refresh token with JTI for tracking
+        Returns: (token, jti, expires_in_seconds)
+        """
         to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-        to_encode.update({"exp": expire, "type": "refresh"})
-        return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        jti = str(uuid.uuid4())  # Unique token ID for revocation tracking
+
+        # Determine expiry based on remember_me
+        if remember_me:
+            days = settings.REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER
+        else:
+            days = settings.REFRESH_TOKEN_EXPIRE_DAYS
+
+        expires_in_seconds = days * 24 * 60 * 60
+        expire = datetime.utcnow() + timedelta(days=days)
+
+        to_encode.update({
+            "exp": expire,
+            "type": "refresh",
+            "jti": jti,
+            "iat": datetime.utcnow()
+        })
+
+        token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        return token, jti, expires_in_seconds
 
     @staticmethod
     def decode_token(token: str) -> Optional[Dict[str, Any]]:
@@ -38,8 +68,23 @@ class AuthService:
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             return payload
-        except JWTError:
+        except JWTError as e:
+            logger.warning(f"Token decode failed: {e}")
             return None
+
+    def create_csrf_token(self) -> str:
+        """Generate a CSRF token"""
+        return self.csrf_serializer.dumps(str(uuid.uuid4()))
+
+    def validate_csrf_token(self, token: str, max_age: int = None) -> bool:
+        """Validate CSRF token format (actual validation happens in Redis)"""
+        try:
+            max_age = max_age or settings.CSRF_TOKEN_EXPIRE_MINUTES * 60
+            self.csrf_serializer.loads(token, max_age=max_age)
+            return True
+        except Exception as e:
+            logger.warning(f"CSRF token format validation failed: {e}")
+            return False
 
     @staticmethod
     async def verify_google_token(token: str) -> Optional[Dict[str, Any]]:

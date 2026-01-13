@@ -27,6 +27,23 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
 
+    # Cookie Settings
+    COOKIE_DOMAIN: str = "localhost"
+    COOKIE_SECURE: bool = False  # True in production
+    COOKIE_SAMESITE: str = "lax"
+    COOKIE_MAX_AGE_STANDARD: int = 604800      # 7 days
+    COOKIE_MAX_AGE_REMEMBER: int = 2592000     # 30 days
+
+    # CSRF Settings
+    CSRF_SECRET_KEY: str
+    CSRF_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # Rate Limiting
+    RATE_LIMIT_PER_MINUTE: int = 5
+
+    # Token Expiry
+    REFRESH_TOKEN_EXPIRE_DAYS_REMEMBER: int = 30  # Remember Me
+
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,muscleup://"
 

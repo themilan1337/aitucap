@@ -32,6 +32,10 @@ openai==2.15.0
 redis==5.2.0
 python-dotenv==1.0.1
 
+# Security & Rate Limiting
+slowapi==0.1.9
+itsdangerous==2.2.0
+
 # Development
 pytest==8.3.3
 pytest-asyncio==0.24.0
