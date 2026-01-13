@@ -19,7 +19,7 @@ const isLoading = ref(false)
 const goals = [
   { id: 'lose-weight', title: 'Похудеть', icon: 'hugeicons:fire' },
   { id: 'tone-body', title: 'Привести тело в тонус', icon: 'hugeicons:body-armor' },
-  { id: 'improve-fitness', title: 'Улучшить физическую форму', icon: 'hugeicons:favourite' }
+  { id: 'improve-fitness', title: 'Улучшить физ. форму', icon: 'hugeicons:favourite' }
 ]
 
 const levels = [
@@ -560,10 +560,6 @@ onUnmounted(() => {
              >
                 Начать тренировку
              </PrimaryButton>
-             
-             <button @click="handleSuccessContinue" class="w-full py-4 rounded-xl border border-[#333] text-white font-medium hover:bg-[#1A1A1A] transition-colors">
-                Посмотреть план
-             </button>
          </div>
       </div>
 
