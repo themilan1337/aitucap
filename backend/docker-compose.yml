@@ -1,4 +1,3 @@
-version: '3.9'
 
 services:
   # PostgreSQL Database
@@ -10,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-muscleup_dev_password}
       POSTGRES_DB: ${POSTGRES_DB:-muscleup}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - muscleup_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -29,7 +28,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - muscleup_redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -43,7 +42,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: muscleup-backend
+    container_name: muscleup
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
       - ./app:/app/app
@@ -76,8 +75,8 @@ services:
       - muscleup-network
 
 volumes:
-  postgres_data:
-  redis_data:
+  muscleup_postgres_data:
+  muscleup_redis_data:
 
 networks:
   muscleup-network:
