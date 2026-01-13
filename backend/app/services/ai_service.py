@@ -1,4 +1,4 @@
-from langchain_openai import ChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from app.config import settings
 from app.schemas.plan import WeeklyPlanAI, UserProfileData
@@ -10,10 +10,12 @@ class AIWorkoutPlanner:
     """Service for generating workout plans using AI"""
 
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4-turbo-preview",
-            temperature=0.7,
-            openai_api_key=settings.OPENAI_API_KEY
+        self.llm = AzureChatOpenAI(
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            openai_api_key=settings.AZURE_OPENAI_API_KEY,
+            deployment_name=settings.AZURE_OPENAI_DEPLOYMENT,
+            openai_api_version=settings.AZURE_OPENAI_API_VERSION,
+            temperature=0.7
         )
         self.structured_llm = self.llm.with_structured_output(WeeklyPlanAI)
 
