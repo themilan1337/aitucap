@@ -16,13 +16,11 @@ async def oauth_login(
     request: OAuthLoginRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    """Login or Register with Google/Apple OAuth"""
-    
+    """Login or Register with Google OAuth"""
+
     user_info = None
     if request.provider == "google":
         user_info = await auth_service.verify_google_token(request.id_token)
-    elif request.provider == "apple":
-        user_info = await auth_service.verify_apple_token(request.id_token)
     else:
         raise HTTPException(status_code=400, detail="Invalid provider")
         

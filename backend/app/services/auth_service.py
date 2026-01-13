@@ -65,26 +65,4 @@ class AuthService:
             logger.error(f"Google token verification failed: {e}")
             return None
 
-    @staticmethod
-    async def verify_apple_token(token: str) -> Optional[Dict[str, Any]]:
-        """Verify Apple ID token"""
-        # In a real app, you'd use authlib or similar to verify Apple's JWT signed with their public keys
-        # For now, we'll implement a robust placeholder that decodes but logs verification needs
-        try:
-            # Apple verification usually requires fetching their public keys and verifying signature
-            # Since this is "ебануто" (crazy good), we'll do it properly using authlib in a real scenario
-            # For this MVP step, we decode to get the info, but skip signature check if keys aren't set
-            payload = jwt.get_unverified_claims(token)
-            
-            # TODO: Add full signature verification using Apple public keys
-            return {
-                "oauth_id": payload['sub'],
-                "email": payload.get('email'),
-                "full_name": None, # Apple only sends name on first login in user object, not token
-                "avatar_url": None
-            }
-        except Exception as e:
-            logger.error(f"Apple token verification failed: {e}")
-            return None
-
 auth_service = AuthService()

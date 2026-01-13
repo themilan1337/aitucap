@@ -8,7 +8,7 @@ class Token(BaseModel):
 
 class OAuthLoginRequest(BaseModel):
     id_token: str
-    provider: str # 'google' | 'apple'
+    provider: str # 'google'
 
 class UserResponse(BaseModel):
     id: str

@@ -18,7 +18,7 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
 
     # OAuth fields
-    oauth_provider = Column(String(50), nullable=False)  # 'google' | 'apple'
+    oauth_provider = Column(String(50), nullable=False)  # 'google'
     oauth_id = Column(String(255), unique=True, nullable=False, index=True)
 
     # Timestamps

@@ -24,12 +24,6 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
 
-    # Apple OAuth
-    APPLE_CLIENT_ID: str
-    APPLE_TEAM_ID: str
-    APPLE_KEY_ID: str
-    APPLE_PRIVATE_KEY: str
-
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,muscleup://"
 
