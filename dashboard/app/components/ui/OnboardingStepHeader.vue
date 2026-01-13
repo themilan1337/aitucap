@@ -6,8 +6,11 @@ defineProps<{
   totalSteps: number
 }>()
 
-const router = useRouter()
-const goBack = () => router.back()
+const emit = defineEmits<{
+  back: []
+}>()
+
+const goBack = () => emit('back')
 </script>
 
 <template>

@@ -29,8 +29,8 @@ const levels = [
 ]
 
 const genders = [
-  { id: 'male', title: 'Мужской', icon: 'hugeicons:user' },
-  { id: 'female', title: 'Женский', icon: 'hugeicons:user-account' }
+  { id: 'male', title: 'Мужской', icon: 'ri:men-line' },
+  { id: 'female', title: 'Женский', icon: 'ri:women-line' }
 ]
 
 // Physical params state
@@ -47,6 +47,15 @@ const howItWorksSteps = [
 // Navigation Logic
 const nextStep = async (step: Step) => {
   currentStep.value = step
+}
+
+const handleGoBack = () => {
+  const stepOrder: Step[] = ['welcome', 'goal', 'level', 'gender', 'physical-params', 'how-it-works', 'preparing', 'success']
+  const currentIndex = stepOrder.indexOf(currentStep.value)
+
+  if (currentIndex > 0) {
+    currentStep.value = stepOrder[currentIndex - 1]
+  }
 }
 
 const handleWelcomeContinue = () => {
@@ -232,6 +241,7 @@ onUnmounted(() => {
       v-if="['goal', 'level', 'gender', 'physical-params', 'how-it-works'].includes(currentStep)"
       :current-step="stepIndex - 1"
       :total-steps="5"
+      @back="handleGoBack"
     />
 
     <transition name="fade" mode="out-in">
@@ -397,7 +407,7 @@ onUnmounted(() => {
               <div class="bg-[#1A1A1A] rounded-2xl p-4">
                 <label class="block text-xs text-gray-400 mb-2">Вес (кг)</label>
                 <div class="flex items-stretch gap-2">
-                  <Icon icon="hugeicons:scale" class="text-[#CCFF00] text-xl shrink-0 self-center" />
+                  <Icon icon="hugeicons:body-weight" class="text-[#CCFF00] text-xl shrink-0 self-center" />
                   <input
                     v-model.number="localWeight"
                     type="number"
