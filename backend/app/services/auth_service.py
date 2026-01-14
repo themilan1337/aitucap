@@ -88,12 +88,15 @@ class AuthService:
 
     @staticmethod
     async def verify_google_token(token: str) -> Optional[Dict[str, Any]]:
-        """Verify Google ID token"""
+        """
+        Verify Google token (supports both ID token and access token)
+        First tries ID token verification, then falls back to access token
+        """
+        # Try ID token verification first
         try:
-            # Replaced with google-auth library for better verification
             idinfo = id_token.verify_oauth2_token(
-                token, 
-                google_requests.Request(), 
+                token,
+                google_requests.Request(),
                 settings.GOOGLE_CLIENT_ID
             )
 
@@ -107,7 +110,30 @@ class AuthService:
                 "avatar_url": idinfo.get('picture')
             }
         except Exception as e:
-            logger.error(f"Google token verification failed: {e}")
-            return None
+            logger.info(f"ID token verification failed, trying access token: {e}")
+
+            # Try access token verification (fetch user info from Google API)
+            try:
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(
+                        'https://www.googleapis.com/oauth2/v3/userinfo',
+                        headers={'Authorization': f'Bearer {token}'}
+                    )
+
+                    if response.status_code != 200:
+                        raise ValueError(f'Google API returned {response.status_code}')
+
+                    userinfo = response.json()
+
+                    return {
+                        "oauth_id": userinfo['sub'],
+                        "email": userinfo.get('email'),
+                        "full_name": userinfo.get('name'),
+                        "avatar_url": userinfo.get('picture')
+                    }
+            except Exception as access_error:
+                logger.error(f"Access token verification also failed: {access_error}")
+                return None
 
 auth_service = AuthService()

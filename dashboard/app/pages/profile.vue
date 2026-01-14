@@ -1,21 +1,90 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import SectionTitle from '~/components/SectionTitle.vue'
 import AchievementCard from '~/components/AchievementCard.vue'
 import WorkoutHistoryCard from '~/components/WorkoutHistoryCard.vue'
 import { useTrainingStore } from '~/stores/training'
 import { useOnboardingStore } from '~/stores/onboarding'
+import { useAuthStore } from '~/stores/auth'
 
 const store = useTrainingStore()
 const onboardingStore = useOnboardingStore()
+const authStore = useAuthStore()
 const router = useRouter()
+
+const isLoggingOut = ref(false)
+const showLogoutMenu = ref(false)
 
 const unlockedAchievements = computed(() =>
   store.achievements.filter(a => a.unlocked).length
 )
 
-const handleReset = () => {
+// Get user display name and avatar from auth store
+const userDisplayName = computed(() => authStore.userName)
+const userAvatar = computed(() => authStore.userAvatar)
+const userEmail = computed(() => authStore.user?.email || '')
+
+// Format join date
+const joinDate = computed(() => {
+  if (!authStore.user?.created_at) return 'января 2025'
+  const date = new Date(authStore.user.created_at)
+  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                   'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+  return `${months[date.getMonth()]} ${date.getFullYear()}`
+})
+
+/**
+ * Logout from current device
+ */
+const handleLogout = async () => {
+  if (isLoggingOut.value) return
+
+  isLoggingOut.value = true
+  showLogoutMenu.value = false
+
+  try {
+    await authStore.logout()
+    // authStore.logout() already redirects to /login
+  } catch (error) {
+    console.error('Logout error:', error)
+  } finally {
+    isLoggingOut.value = false
+  }
+}
+
+/**
+ * Logout from all devices
+ */
+const handleLogoutAll = async () => {
+  if (isLoggingOut.value) return
+
+  if (!confirm('Вы уверены, что хотите выйти со всех устройств?')) {
+    return
+  }
+
+  isLoggingOut.value = true
+  showLogoutMenu.value = false
+
+  try {
+    await authStore.logoutAllDevices()
+    // authStore.logoutAllDevices() already redirects to /login
+  } catch (error) {
+    console.error('Logout all devices error:', error)
+  } finally {
+    isLoggingOut.value = false
+  }
+}
+
+/**
+ * Reset onboarding for testing purposes
+ * This is a development feature
+ */
+const handleResetOnboarding = () => {
+  if (!confirm('Вы уверены, что хотите сбросить процесс onboarding? Это функция для разработки.')) {
+    return
+  }
+
   store.resetOnboarding()
   onboardingStore.resetOnboarding()
   router.push('/onboarding')
@@ -28,11 +97,18 @@ const handleReset = () => {
 
     <!-- Profile Header -->
     <div class="flex flex-col items-center mb-6">
-      <div class="w-32 h-32 rounded-full bg-[#424700] flex items-center justify-center text-neon mb-4">
+      <!-- User Avatar -->
+      <div v-if="userAvatar" class="w-32 h-32 rounded-full mb-4 overflow-hidden ring-2 ring-neon/20">
+        <img :src="userAvatar" :alt="userDisplayName" class="w-full h-full object-cover" />
+      </div>
+      <div v-else class="w-32 h-32 rounded-full bg-[#424700] flex items-center justify-center text-neon mb-4">
         <Icon icon="heroicons:user" class="text-6xl" />
       </div>
-      <h2 class="text-2xl font-bold mb-1">Пользователь</h2>
-      <p class="text-gray-400 text-sm mb-4">С нами с января 2025</p>
+
+      <!-- User Info -->
+      <h2 class="text-2xl font-bold mb-1">{{ userDisplayName }}</h2>
+      <p class="text-gray-400 text-sm mb-1">{{ userEmail }}</p>
+      <p class="text-gray-500 text-xs mb-4">С нами с {{ joinDate }}</p>
 
       <button class="px-8 py-3 bg-neon text-black font-semibold rounded-xl hover:brightness-110 transition-all">
         Редактировать профиль
@@ -144,13 +220,41 @@ const handleReset = () => {
       </button>
     </div>
 
-    <!-- Logout Button -->
+    <!-- Logout Section -->
+    <div class="space-y-3 mb-4">
+      <!-- Logout Button -->
+      <button
+        @click="handleLogout"
+        :disabled="isLoggingOut"
+        class="w-full bg-[#1A1A1A] text-red-500 py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#222] transition-colors disabled:opacity-50"
+      >
+        <Icon v-if="!isLoggingOut" icon="heroicons:arrow-left-on-rectangle" class="text-xl" />
+        <svg v-else class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="font-semibold">{{ isLoggingOut ? 'Выход...' : 'Выйти' }}</span>
+      </button>
+
+      <!-- Logout from All Devices Button -->
+      <button
+        @click="handleLogoutAll"
+        :disabled="isLoggingOut"
+        class="w-full bg-[#1A1A1A] text-orange-500 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#222] transition-colors text-sm disabled:opacity-50"
+      >
+        <Icon icon="heroicons:device-phone-mobile" class="text-lg" />
+        <span>Выйти со всех устройств</span>
+      </button>
+    </div>
+
+    <!-- Development: Reset Onboarding (hidden in production) -->
     <button
-      @click="handleReset"
-      class="w-full bg-[#1A1A1A] text-red-500 py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#222] transition-colors"
+      v-if="$config.public.env === 'development'"
+      @click="handleResetOnboarding"
+      class="w-full bg-[#1A1A1A] text-gray-500 py-2 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#222] transition-colors text-xs"
     >
-      <Icon icon="heroicons:arrow-left-on-rectangle" class="text-xl" />
-      <span class="font-semibold">Выйти</span>
+      <Icon icon="heroicons:arrow-path" class="text-sm" />
+      <span>Сбросить onboarding (dev)</span>
     </button>
   </div>
 </template>

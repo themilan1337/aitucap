@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from uuid import UUID
+from datetime import datetime
 
 
 class OAuthLoginRequest(BaseModel):
@@ -24,11 +26,16 @@ class LogoutResponse(BaseModel):
 
 class UserResponse(BaseModel):
     """User data response (NO tokens in body - they're in HttpOnly cookies)"""
-    id: str
+    id: UUID
     email: EmailStr
     full_name: Optional[str]
     avatar_url: Optional[str]
     oauth_provider: str
+    created_at: datetime
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            UUID: lambda v: str(v),  # Convert UUID to string in JSON response
+            datetime: lambda v: v.isoformat()  # Convert datetime to ISO format string
+        }

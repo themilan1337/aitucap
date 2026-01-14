@@ -25,10 +25,11 @@ async def rate_limit_middleware(request: Request):
         client_ip = request.headers["x-forwarded-for"].split(",")[0].strip()
 
     # Check rate limit in Redis
+    # 10 requests per second = 100 requests per 10 seconds
     allowed = await redis_service.check_rate_limit(
         f"auth:{client_ip}",
-        max_requests=settings.RATE_LIMIT_PER_MINUTE,
-        window_seconds=60
+        max_requests=100,
+        window_seconds=10
     )
 
     if not allowed:
