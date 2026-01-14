@@ -32,16 +32,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     completed.value = true
   }
 
-  function resetOnboarding() {
-    goal.value = null
-    level.value = null
-    gender.value = null
-    height.value = null
-    weight.value = null
-    age.value = null
-    completed.value = false
-  }
-
   return {
     goal,
     level,
@@ -55,8 +45,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     setLevel,
     setGender,
     setPhysicalParams,
-    completeOnboarding,
-    resetOnboarding
+    completeOnboarding
   }
 }, {
   persist: true

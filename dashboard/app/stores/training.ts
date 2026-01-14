@@ -143,10 +143,6 @@ export const useTrainingStore = defineStore('training', {
       if (ex) {
         ex.completed = !ex.completed
       }
-    },
-    resetOnboarding() {
-        // Dummy action for profile
-        this.streak = 0
     }
   },
   persist: true,
