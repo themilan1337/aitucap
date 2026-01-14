@@ -1,0 +1,148 @@
+{
+  "exercises": {
+    "squat": {
+      "name_ru": "Приседания",
+      "name_en": "Squat",
+      "down_angle": 110,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [12, 14, 16]
+    },
+    "pushup": {
+      "name_ru": "Отжимания",
+      "name_en": "Push-up",
+      "down_angle": 110,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [5, 7, 9],
+        "right": [6, 8, 10]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [6, 8, 10]
+    },
+    "situp": {
+      "name_ru": "Пресс",
+      "name_en": "Sit-up",
+      "down_angle": 145,
+      "up_angle": 170,
+      "keypoints": {
+        "left": [5, 11, 15],
+        "right": [6, 12, 16]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [5, 11, 12]
+    },
+    "bicep_curl": {
+      "name_ru": "Подъем на бицепс",
+      "name_en": "Bicep Curl",
+      "down_angle": 160,
+      "up_angle": 60,
+      "keypoints": {
+        "left": [5, 7, 9],
+        "right": [6, 8, 10]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [6, 8, 10]
+    },
+    "lateral_raise": {
+      "name_ru": "Разведение рук",
+      "name_en": "Lateral Raise",
+      "down_angle": 30,
+      "up_angle": 80,
+      "keypoints": {
+        "left": [11, 5, 7],
+        "right": [12, 6, 8]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [12, 6, 8]
+    },
+    "overhead_press": {
+      "name_ru": "Жим вверх",
+      "name_en": "Overhead Press",
+      "down_angle": 30,
+      "up_angle": 150,
+      "keypoints": {
+        "left": [11, 5, 7],
+        "right": [12, 6, 8]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [12, 6, 8]
+    },
+    "leg_raise": {
+      "name_ru": "Подъем ног",
+      "name_en": "Leg Raise",
+      "down_angle": 130,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [5, 11, 13],
+        "right": [6, 12, 14]
+      },
+      "is_leg_exercise": true,
+      "angle_point": [12, 14, 16]
+    },
+    "knee_raise": {
+      "name_ru": "Подъем коленей",
+      "name_en": "Knee Raise",
+      "down_angle": 110,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      },
+      "is_leg_exercise": true,
+      "angle_point": [12, 14, 16]
+    },
+    "knee_press": {
+      "name_ru": "Сгибание коленей",
+      "name_en": "Knee Press",
+      "down_angle": 110,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      },
+      "is_leg_exercise": true,
+      "angle_point": [11, 13, 15]
+    },
+    "crunch": {
+      "name_ru": "Скручивания",
+      "name_en": "Crunch",
+      "down_angle": 150,
+      "up_angle": 175,
+      "keypoints": {
+        "left": [5, 11, 13],
+        "right": [6, 12, 14]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [5, 11, 12]
+    },
+    "lunge": {
+      "name_ru": "Выпады",
+      "name_en": "Lunge",
+      "down_angle": 110,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      },
+      "is_leg_exercise": true,
+      "angle_point": [12, 14, 16]
+    },
+    "plank": {
+      "name_ru": "Планка",
+      "name_en": "Plank",
+      "down_angle": 160,
+      "up_angle": 180,
+      "keypoints": {
+        "left": [5, 11, 15],
+        "right": [6, 12, 16]
+      },
+      "is_leg_exercise": false,
+      "angle_point": [5, 11, 12]
+    }
+  }
+}

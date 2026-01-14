@@ -11,11 +11,19 @@ const emit = defineEmits<{
   endTraining: []
 }>()
 
+const config = useRuntimeConfig()
+
 // Camera state
 const videoRef = ref<HTMLVideoElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
 const stream = ref<MediaStream | null>(null)
 const cameraError = ref<string | null>(null)
 const isCameraReady = ref(false)
+
+// WebSocket state
+const ws = ref<WebSocket | null>(null)
+const isConnected = ref(false)
+const connectionError = ref<string | null>(null)
 
 // Training state
 const currentExerciseIndex = ref(0)
@@ -31,9 +39,15 @@ const accuracy = ref(0)
 const startTime = ref<Date | null>(null)
 const endTime = ref<Date | null>(null)
 
-// Mock AI detection
+// AI detection state
 const isDetectingMovement = ref(false)
 const formQuality = ref(0) // 0-100
+const lastReps = ref(0)
+
+// Keypoints from backend
+const keypoints = ref<number[][] | null>(null)
+const anglePoint = ref<number[][] | null>(null)
+const currentAngle = ref<number | null>(null)
 
 const currentExercise = computed(() => props.exercises[currentExerciseIndex.value])
 
@@ -57,6 +71,25 @@ const elapsedTime = computed(() => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 })
 
+// Get exercise type identifier for backend
+const getExerciseType = (exerciseName: string): string => {
+  const mapping: Record<string, string> = {
+    'Приседания': 'squat',
+    'Выпады': 'lunge',
+    'Отжимания': 'pushup',
+    'Планка': 'plank',
+    'Пресс': 'situp',
+    'Скручивания': 'crunch',
+    'Подъем на бицепс': 'bicep_curl',
+    'Разведение рук': 'lateral_raise',
+    'Жим вверх': 'overhead_press',
+    'Подъем ног': 'leg_raise',
+    'Подъем коленей': 'knee_raise',
+    'Сгибание коленей': 'knee_press'
+  }
+  return mapping[exerciseName] || 'squat'
+}
+
 // Initialize camera
 const initCamera = async () => {
   try {
@@ -73,6 +106,15 @@ const initCamera = async () => {
         videoRef.value?.play()
         isCameraReady.value = true
         startTime.value = new Date()
+
+        // Initialize canvas size to match video
+        if (canvasRef.value && videoRef.value) {
+          canvasRef.value.width = videoRef.value.videoWidth
+          canvasRef.value.height = videoRef.value.videoHeight
+        }
+
+        // Connect to WebSocket after camera is ready
+        connectWebSocket()
       }
     }
   } catch (error) {
@@ -81,38 +123,200 @@ const initCamera = async () => {
   }
 }
 
-// Mock rep detection - симулирует определение повторений
-const mockRepDetection = () => {
-  if (isResting.value || showingResults.value) return
+// Connect to WebSocket
+const connectWebSocket = () => {
+  const wsUrl = config.public.apiUrl.replace('http', 'ws') + '/api/v1/vision/ws/pose'
+  console.log('Connecting to WebSocket:', wsUrl)
 
-  // Случайное "определение" повторения каждые 2-3 секунды
-  const interval = setInterval(() => {
-    if (isResting.value || showingResults.value || !currentExercise.value) {
-      clearInterval(interval)
-      return
+  ws.value = new WebSocket(wsUrl)
+
+  ws.value.onopen = () => {
+    console.log('✓ WebSocket connected')
+    isConnected.value = true
+    connectionError.value = null
+    startSendingFrames()
+  }
+
+  ws.value.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data)
+
+      if (data.error) {
+        console.error('Backend error:', data.error)
+        return
+      }
+
+      if (data.success) {
+        // Update keypoints for visualization
+        if (data.keypoints) {
+          keypoints.value = data.keypoints
+          drawSkeleton()
+        }
+
+        // Update angle visualization
+        if (data.angle_point) {
+          anglePoint.value = data.angle_point
+        }
+        if (data.angle !== undefined) {
+          currentAngle.value = data.angle
+        }
+
+        // Update rep count
+        if (data.reps !== undefined && data.reps !== lastReps.value) {
+          lastReps.value = data.reps
+          handleRepDetected(data.reps)
+        }
+
+        // Calculate form quality based on angle (mock for now)
+        if (data.angle !== undefined) {
+          formQuality.value = Math.min(95, Math.max(70, Math.floor(data.angle / 2)))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to parse WebSocket message:', error)
     }
+  }
 
-    if (currentReps.value < currentExercise.value.reps) {
-      currentReps.value++
-      totalReps.value++
+  ws.value.onerror = (error) => {
+    console.error('WebSocket error:', error)
+    connectionError.value = 'Ошибка подключения к серверу'
+    isConnected.value = false
+  }
 
-      // Симулируем качество формы (70-95%)
-      formQuality.value = Math.floor(Math.random() * 25) + 70
+  ws.value.onclose = () => {
+    console.log('WebSocket disconnected')
+    isConnected.value = false
+  }
+}
 
-      // Обновляем среднюю точность
-      accuracy.value = Math.floor((accuracy.value * (totalReps.value - 1) + formQuality.value) / totalReps.value)
+// Send video frames to backend
+let frameInterval: number | null = null
+const startSendingFrames = () => {
+  if (frameInterval) clearInterval(frameInterval)
 
-      // Анимация обнаружения
-      isDetectingMovement.value = true
-      setTimeout(() => {
-        isDetectingMovement.value = false
-      }, 500)
-    } else {
-      // Сет завершен
-      clearInterval(interval)
-      handleSetComplete()
+  // Send frames every 100ms (10 FPS) to balance performance and accuracy
+  frameInterval = setInterval(() => {
+    if (!isConnected.value || !videoRef.value || isResting.value || showingResults.value) return
+
+    try {
+      // Create temporary canvas to capture video frame
+      const tempCanvas = document.createElement('canvas')
+      tempCanvas.width = videoRef.value.videoWidth
+      tempCanvas.height = videoRef.value.videoHeight
+      const ctx = tempCanvas.getContext('2d')
+
+      if (ctx) {
+        // Mirror the video horizontally
+        ctx.save()
+        ctx.scale(-1, 1)
+        ctx.drawImage(videoRef.value, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height)
+        ctx.restore()
+
+        // Convert to base64
+        const frameData = tempCanvas.toDataURL('image/jpeg', 0.7)
+
+        // Send to backend
+        if (ws.value && ws.value.readyState === WebSocket.OPEN && currentExercise.value) {
+          ws.value.send(JSON.stringify({
+            frame: frameData,
+            exercise: getExerciseType(currentExercise.value.name)
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send frame:', error)
     }
-  }, 2500) // Одно повторение каждые 2.5 секунды
+  }, 100)
+}
+
+// Handle rep detected from backend
+const handleRepDetected = (reps: number) => {
+  if (!currentExercise.value) return
+
+  currentReps.value = reps
+  totalReps.value++
+
+  // Update average accuracy
+  accuracy.value = Math.floor((accuracy.value * (totalReps.value - 1) + formQuality.value) / totalReps.value)
+
+  // Animation
+  isDetectingMovement.value = true
+  setTimeout(() => {
+    isDetectingMovement.value = false
+  }, 500)
+
+  // Check if set is complete
+  if (currentReps.value >= currentExercise.value.reps) {
+    handleSetComplete()
+  }
+}
+
+// Draw skeleton on canvas
+const drawSkeleton = () => {
+  if (!canvasRef.value || !keypoints.value) return
+
+  const canvas = canvasRef.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  // Define skeleton connections (COCO 17 format)
+  const connections = [
+    // Head
+    [0, 1], [0, 2], [1, 3], [2, 4],
+    // Torso
+    [5, 6], [5, 11], [6, 12], [11, 12],
+    // Arms
+    [5, 7], [7, 9], [6, 8], [8, 10],
+    // Legs
+    [11, 13], [13, 15], [12, 14], [14, 16]
+  ]
+
+  const colors: Record<string, string> = {
+    head: '#3399FF',
+    torso: '#FF9933',
+    arms: '#99FF33',
+    legs: '#FF3399'
+  }
+
+  // Draw connections
+  connections.forEach((connection, index) => {
+    const [i, j] = connection
+    const point1 = keypoints.value![i]
+    const point2 = keypoints.value![j]
+
+    if (point1[0] > 0 && point1[1] > 0 && point2[0] > 0 && point2[1] > 0) {
+      ctx.strokeStyle = index < 4 ? colors.head : index < 8 ? colors.torso : index < 12 ? colors.arms : colors.legs
+      ctx.lineWidth = 3
+      ctx.beginPath()
+      ctx.moveTo(point1[0], point1[1])
+      ctx.lineTo(point2[0], point2[1])
+      ctx.stroke()
+    }
+  })
+
+  // Draw keypoints
+  keypoints.value.forEach(point => {
+    if (point[0] > 0 && point[1] > 0) {
+      ctx.fillStyle = '#CCFF00'
+      ctx.beginPath()
+      ctx.arc(point[0], point[1], 5, 0, 2 * Math.PI)
+      ctx.fill()
+    }
+  })
+
+  // Draw angle lines if available
+  if (anglePoint.value && anglePoint.value.length === 3) {
+    ctx.strokeStyle = '#FFFF00'
+    ctx.lineWidth = 4
+    ctx.beginPath()
+    ctx.moveTo(anglePoint.value[0][0], anglePoint.value[0][1])
+    ctx.lineTo(anglePoint.value[1][0], anglePoint.value[1][1])
+    ctx.lineTo(anglePoint.value[2][0], anglePoint.value[2][1])
+    ctx.stroke()
+  }
 }
 
 const handleSetComplete = () => {
@@ -139,9 +343,22 @@ const startRest = (seconds: number) => {
       isResting.value = false
       currentSet.value++
       currentReps.value = 0
-      mockRepDetection() // Начинаем новый сет
+      lastReps.value = 0
+
+      // Reset counter on backend
+      resetBackendCounter()
     }
   }, 1000)
+}
+
+const resetBackendCounter = async () => {
+  try {
+    await fetch(`${config.public.apiUrl}/api/v1/vision/reset-counter`, {
+      method: 'POST'
+    })
+  } catch (error) {
+    console.error('Failed to reset backend counter:', error)
+  }
 }
 
 const moveToNextExercise = () => {
@@ -150,6 +367,10 @@ const moveToNextExercise = () => {
     currentExerciseIndex.value++
     currentSet.value = 1
     currentReps.value = 0
+    lastReps.value = 0
+
+    // Reset counter
+    resetBackendCounter()
 
     // Отдых между упражнениями
     startRest(60) // 60 секунд отдыха
@@ -163,9 +384,20 @@ const completeWorkout = () => {
   endTime.value = new Date()
   showingResults.value = true
 
+  // Stop sending frames
+  if (frameInterval) {
+    clearInterval(frameInterval)
+    frameInterval = null
+  }
+
   // Останавливаем камеру
   if (stream.value) {
     stream.value.getTracks().forEach(track => track.stop())
+  }
+
+  // Close WebSocket
+  if (ws.value) {
+    ws.value.close()
   }
 }
 
@@ -176,25 +408,31 @@ const skipRest = () => {
 }
 
 const exitTraining = () => {
+  if (frameInterval) {
+    clearInterval(frameInterval)
+  }
   if (stream.value) {
     stream.value.getTracks().forEach(track => track.stop())
+  }
+  if (ws.value) {
+    ws.value.close()
   }
   emit('endTraining')
 }
 
 onMounted(() => {
   initCamera()
-  // Начинаем mock определение после инициализации камеры
-  setTimeout(() => {
-    if (isCameraReady.value) {
-      mockRepDetection()
-    }
-  }, 2000)
 })
 
 onUnmounted(() => {
+  if (frameInterval) {
+    clearInterval(frameInterval)
+  }
   if (stream.value) {
     stream.value.getTracks().forEach(track => track.stop())
+  }
+  if (ws.value) {
+    ws.value.close()
   }
 })
 </script>
@@ -212,6 +450,20 @@ onUnmounted(() => {
         muted
       />
 
+      <!-- Canvas Overlay for Skeleton -->
+      <canvas
+        ref="canvasRef"
+        class="absolute top-0 left-0 w-full h-full pointer-events-none mirror"
+      />
+
+      <!-- Connection Status -->
+      <div
+        v-if="!isConnected && isCameraReady"
+        class="absolute top-20 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-orange-500/90 backdrop-blur rounded-full text-white text-sm font-medium"
+      >
+        Подключение к серверу...
+      </div>
+
       <!-- Camera Error -->
       <div
         v-if="cameraError"
@@ -228,7 +480,6 @@ onUnmounted(() => {
           </button>
         </div>
       </div>
-
 
       <!-- Top Controls -->
       <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent">
@@ -290,6 +541,11 @@ onUnmounted(() => {
                 />
               </div>
               <span class="text-gray-400 text-sm font-medium">Форма: {{ formQuality }}%</span>
+            </div>
+
+            <!-- Angle Display -->
+            <div v-if="currentAngle" class="mt-3 text-gray-400 text-sm">
+              Угол: {{ currentAngle }}°
             </div>
           </div>
         </div>

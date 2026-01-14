@@ -36,6 +36,16 @@ python-dotenv==1.0.1
 slowapi==0.1.9
 itsdangerous==2.2.0
 
+# Computer Vision & Pose Detection
+opencv-python-headless==4.10.0.84
+onnxruntime==1.20.1
+numpy==1.26.4
+rtmlib==0.0.13
+Pillow==11.1.0
+
+# WebSocket Support
+websockets==13.1
+
 # Development
 pytest==8.3.3
 pytest-asyncio==0.24.0

@@ -91,7 +91,7 @@ async def root():
 
 
 # Include routers
-from app.api.v1 import auth, users, plans, workouts, stats, achievements
+from app.api.v1 import auth, users, plans, workouts, stats, achievements, vision
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
@@ -99,3 +99,4 @@ app.include_router(plans.router, prefix="/api/v1/plans", tags=["plans"])
 app.include_router(workouts.router, prefix="/api/v1/workouts", tags=["workouts"])
 app.include_router(stats.router, prefix="/api/v1/stats", tags=["stats"])
 app.include_router(achievements.router, prefix="/api/v1/achievements", tags=["achievements"])
+app.include_router(vision.router, prefix="/api/v1/vision", tags=["vision"])
