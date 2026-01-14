@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import { computed, ref } from 'vue'
-import SectionTitle from '~/components/SectionTitle.vue'
 import AchievementCard from '~/components/AchievementCard.vue'
 import WorkoutHistoryCard from '~/components/WorkoutHistoryCard.vue'
 import { useTrainingStore } from '~/stores/training'
-import { useOnboardingStore } from '~/stores/onboarding'
 import { useAuthStore } from '~/stores/auth'
 
 const store = useTrainingStore()
-const onboardingStore = useOnboardingStore()
 const authStore = useAuthStore()
-const router = useRouter()
 
 const isLoggingOut = ref(false)
-const showLogoutMenu = ref(false)
 
 const unlockedAchievements = computed(() =>
   store.achievements.filter(a => a.unlocked).length
@@ -41,7 +36,6 @@ const handleLogout = async () => {
   if (isLoggingOut.value) return
 
   isLoggingOut.value = true
-  showLogoutMenu.value = false
 
   try {
     await authStore.logout()
@@ -64,7 +58,6 @@ const handleLogoutAll = async () => {
   }
 
   isLoggingOut.value = true
-  showLogoutMenu.value = false
 
   try {
     await authStore.logoutAllDevices()
@@ -74,20 +67,6 @@ const handleLogoutAll = async () => {
   } finally {
     isLoggingOut.value = false
   }
-}
-
-/**
- * Reset onboarding for testing purposes
- * This is a development feature
- */
-const handleResetOnboarding = () => {
-  if (!confirm('Вы уверены, что хотите сбросить процесс onboarding? Это функция для разработки.')) {
-    return
-  }
-
-  store.resetOnboarding()
-  onboardingStore.resetOnboarding()
-  router.push('/onboarding')
 }
 </script>
 
@@ -240,22 +219,12 @@ const handleResetOnboarding = () => {
       <button
         @click="handleLogoutAll"
         :disabled="isLoggingOut"
-        class="w-full bg-[#1A1A1A] text-orange-500 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#222] transition-colors text-sm disabled:opacity-50"
+        class="w-full bg-[#1A1A1A] text-orange-500 py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#222] transition-colors disabled:opacity-50"
       >
-        <Icon icon="heroicons:device-phone-mobile" class="text-lg" />
-        <span>Выйти со всех устройств</span>
+        <Icon icon="heroicons:device-phone-mobile" class="text-xl" />
+        <span class="font-semibold">Выйти со всех устройств</span>
       </button>
     </div>
-
-    <!-- Development: Reset Onboarding (hidden in production) -->
-    <button
-      v-if="$config.public.env === 'development'"
-      @click="handleResetOnboarding"
-      class="w-full bg-[#1A1A1A] text-gray-500 py-2 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#222] transition-colors text-xs"
-    >
-      <Icon icon="heroicons:arrow-path" class="text-sm" />
-      <span>Сбросить onboarding (dev)</span>
-    </button>
   </div>
 </template>
 
