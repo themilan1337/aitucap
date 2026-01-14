@@ -1,0 +1,18 @@
+{
+  "daily": {
+    "squat": 100,
+    "pushup": 100,
+    "situp": 50,
+    "bicep_curl": 90,
+    "lateral_raise": 90,
+    "overhead_press": 90,
+    "leg_raise": 300,
+    "knee_raise": 150,
+    "left_knee_press": 150,
+    "right_knee_press": 150,
+    "knee_press": 20
+  },
+  "weekly": {
+    "total_workouts": 6
+  }
+}
