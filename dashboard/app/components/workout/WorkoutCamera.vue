@@ -20,10 +20,6 @@ const stream = ref<MediaStream | null>(null)
 const cameraError = ref<string | null>(null)
 const isCameraReady = ref(false)
 
-// Video dimensions for scaling
-const videoIntrinsicWidth = ref(1280)
-const videoIntrinsicHeight = ref(720)
-
 // WebSocket state
 const ws = ref<WebSocket | null>(null)
 const isConnected = ref(false)
@@ -111,22 +107,14 @@ const initCamera = async () => {
         isCameraReady.value = true
         startTime.value = new Date()
 
-        // Store intrinsic video dimensions (original video size from camera)
-        if (videoRef.value) {
-          videoIntrinsicWidth.value = videoRef.value.videoWidth
-          videoIntrinsicHeight.value = videoRef.value.videoHeight
+        // Initialize canvas size to match video
+        if (canvasRef.value && videoRef.value) {
+          canvasRef.value.width = videoRef.value.videoWidth
+          canvasRef.value.height = videoRef.value.videoHeight
         }
 
-        // Wait for video to be displayed, then initialize canvas
-        // Use nextTick to ensure video element is rendered
-        setTimeout(() => {
-          updateCanvasSize()
-          // Connect to WebSocket after camera is ready
-          connectWebSocket()
-        }, 100)
-        
-        // Update canvas on resize (for mobile orientation changes)
-        window.addEventListener('resize', updateCanvasSize)
+        // Connect to WebSocket after camera is ready
+        connectWebSocket()
       }
     }
   } catch (error) {
@@ -263,85 +251,16 @@ const handleRepDetected = (reps: number) => {
   }
 }
 
-// Update canvas size to match displayed video size
-const updateCanvasSize = () => {
-  if (!canvasRef.value || !videoRef.value) return
-  
-  const displayedWidth = videoRef.value.clientWidth
-  const displayedHeight = videoRef.value.clientHeight
-  
-  const dpr = window.devicePixelRatio || 1
-  const targetWidth = Math.round(displayedWidth * dpr)
-  const targetHeight = Math.round(displayedHeight * dpr)
-
-  if (canvasRef.value.width !== targetWidth || canvasRef.value.height !== targetHeight) {
-    canvasRef.value.width = targetWidth
-    canvasRef.value.height = targetHeight
-  }
-
-  if (keypoints.value) drawSkeleton()
-}
-
-// Scale keypoints from intrinsic video size to displayed size
-const scaleKeypoints = (points: number[][], fromWidth: number, fromHeight: number, toWidth: number, toHeight: number): number[][] => {
-  const scale = Math.max(toWidth / fromWidth, toHeight / fromHeight)
-  const offsetX = (toWidth - fromWidth * scale) / 2
-  const offsetY = (toHeight - fromHeight * scale) / 2
-
-  return points.map(point => [point[0] * scale + offsetX, point[1] * scale + offsetY])
-}
-
 // Draw skeleton on canvas
 const drawSkeleton = () => {
-  if (!canvasRef.value || !keypoints.value || !videoRef.value) return
+  if (!canvasRef.value || !keypoints.value) return
 
   const canvas = canvasRef.value
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  // Get displayed video dimensions
-  const displayedWidth = videoRef.value.clientWidth
-  const displayedHeight = videoRef.value.clientHeight
-  
-  const dpr = window.devicePixelRatio || 1
-  const targetWidth = Math.round(displayedWidth * dpr)
-  const targetHeight = Math.round(displayedHeight * dpr)
-
-  if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
-    canvas.width = targetWidth
-    canvas.height = targetHeight
-  }
-
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-
   // Clear canvas
-  ctx.clearRect(0, 0, displayedWidth, displayedHeight)
-
-  // Scale keypoints from intrinsic video size to displayed size
-  const scaledKeypoints = scaleKeypoints(
-    keypoints.value,
-    videoIntrinsicWidth.value,
-    videoIntrinsicHeight.value,
-    displayedWidth,
-    displayedHeight
-  )
-
-  // Mirror coordinates because canvas is mirrored via CSS transform: scaleX(-1)
-  // Formula: mirrored_x = canvas_width - original_x
-  const mirrorKeypoints = (points: number[][]): number[][] => {
-    return points.map(point => [displayedWidth - point[0], point[1]])
-  }
-
-  const mirroredKeypoints = mirrorKeypoints(scaledKeypoints)
-  const mirroredAnglePoint = anglePoint.value 
-    ? mirrorKeypoints(scaleKeypoints(
-        anglePoint.value,
-        videoIntrinsicWidth.value,
-        videoIntrinsicHeight.value,
-        displayedWidth,
-        displayedHeight
-      ))
-    : null
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
 
   // Define skeleton connections (COCO 17 format)
   const connections = [
@@ -365,15 +284,10 @@ const drawSkeleton = () => {
   // Draw connections
   connections.forEach((connection, index) => {
     const [i, j] = connection
-    const point1 = mirroredKeypoints[i]
-    const point2 = mirroredKeypoints[j]
+    const point1 = keypoints.value![i]
+    const point2 = keypoints.value![j]
 
-    if (
-      point1[0] >= 0 && point1[0] <= displayedWidth &&
-      point1[1] >= 0 && point1[1] <= displayedHeight &&
-      point2[0] >= 0 && point2[0] <= displayedWidth &&
-      point2[1] >= 0 && point2[1] <= displayedHeight
-    ) {
+    if (point1[0] > 0 && point1[1] > 0 && point2[0] > 0 && point2[1] > 0) {
       ctx.strokeStyle = index < 4 ? colors.head : index < 8 ? colors.torso : index < 12 ? colors.arms : colors.legs
       ctx.lineWidth = 3
       ctx.beginPath()
@@ -384,8 +298,8 @@ const drawSkeleton = () => {
   })
 
   // Draw keypoints
-  mirroredKeypoints.forEach(point => {
-    if (point[0] >= 0 && point[0] <= displayedWidth && point[1] >= 0 && point[1] <= displayedHeight) {
+  keypoints.value.forEach(point => {
+    if (point[0] > 0 && point[1] > 0) {
       ctx.fillStyle = '#CCFF00'
       ctx.beginPath()
       ctx.arc(point[0], point[1], 5, 0, 2 * Math.PI)
@@ -394,17 +308,14 @@ const drawSkeleton = () => {
   })
 
   // Draw angle lines if available
-  if (mirroredAnglePoint && mirroredAnglePoint.length === 3) {
-    const angleInBounds = mirroredAnglePoint.every(p => p[0] >= 0 && p[0] <= displayedWidth && p[1] >= 0 && p[1] <= displayedHeight)
-    if (angleInBounds) {
-      ctx.strokeStyle = '#FFFF00'
-      ctx.lineWidth = 4
-      ctx.beginPath()
-      ctx.moveTo(mirroredAnglePoint[0][0], mirroredAnglePoint[0][1])
-      ctx.lineTo(mirroredAnglePoint[1][0], mirroredAnglePoint[1][1])
-      ctx.lineTo(mirroredAnglePoint[2][0], mirroredAnglePoint[2][1])
-      ctx.stroke()
-    }
+  if (anglePoint.value && anglePoint.value.length === 3) {
+    ctx.strokeStyle = '#FFFF00'
+    ctx.lineWidth = 4
+    ctx.beginPath()
+    ctx.moveTo(anglePoint.value[0][0], anglePoint.value[0][1])
+    ctx.lineTo(anglePoint.value[1][0], anglePoint.value[1][1])
+    ctx.lineTo(anglePoint.value[2][0], anglePoint.value[2][1])
+    ctx.stroke()
   }
 }
 
@@ -523,7 +434,6 @@ onUnmounted(() => {
   if (ws.value) {
     ws.value.close()
   }
-  window.removeEventListener('resize', updateCanvasSize)
 })
 </script>
 
