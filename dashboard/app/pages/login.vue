@@ -24,10 +24,19 @@ const handleGoogleLogin = () => {
   isLoading.value = true
   errorMessage.value = null
 
+  const clientId = config.public.googleClientId as string
+
+  // Check if client ID is configured
+  if (!clientId || clientId.trim() === '') {
+    errorMessage.value = 'Google OAuth is not configured. Please set NUXT_PUBLIC_GOOGLE_CLIENT_ID in your .env file.'
+    isLoading.value = false
+    return
+  }
+
   // Use Google OAuth2 with popup
   googleSdkLoaded((google) => {
     const client = google.accounts.oauth2.initTokenClient({
-      client_id: config.public.googleClientId as string,
+      client_id: clientId,
       scope: 'openid email profile',
       callback: handleOAuthResponse,
     })
