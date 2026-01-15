@@ -99,19 +99,17 @@ const benefits = [
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4">
-              <a
-                href="http://localhost:3001"
+              <NuxtLink to="https://app.muscleup.fitness/"
                 class="group px-8 py-4 bg-neon text-black font-bold text-lg rounded-2xl hover:brightness-110 transition-all duration-300 shadow-neon hover:shadow-neon-lg flex items-center justify-center gap-3"
               >
                 Начать тренировку
                 <Icon icon="hugeicons:arrow-right-02" class="text-2xl group-hover:translate-x-1 transition-transform" />
-              </a>
+              </NuxtLink>
               <a
                 href="#how-it-works"
                 class="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold text-lg rounded-2xl hover:bg-white/10 hover:border-neon/50 transition-all duration-300 backdrop-blur-sm flex items-center justify-center gap-3"
               >
                 Как это работает
-                <Icon icon="hugeicons:arrow-down-01" class="text-2xl" />
               </a>
             </div>
 
@@ -267,13 +265,12 @@ const benefits = [
           </p>
 
           <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a
-              href="http://localhost:3001"
+            <NuxtLink to="https://app.muscleup.fitness/"
               class="group px-10 py-5 bg-neon text-black font-bold text-xl rounded-2xl hover:brightness-110 transition-all duration-300 shadow-neon-lg hover:shadow-neon-xl flex items-center gap-3"
             >
               Начать тренировку
               <Icon icon="hugeicons:arrow-right-02" class="text-2xl group-hover:translate-x-1 transition-transform" />
-            </a>
+          </NuxtLink>
           </div>
         </div>
       </div>
