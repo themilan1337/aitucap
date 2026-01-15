@@ -16,15 +16,19 @@ class PlannedExercise(BaseModel):
     instructions: str
 
 class PlanDay(BaseModel):
-    day_number: int # 1 to 7
+    day_number: int  # 1 to 30 (for monthly plans)
     is_rest_day: bool = False
     exercises: List[PlannedExercise] = []
     daily_focus: str
 
-class WeeklyPlanAI(BaseModel):
+class MonthlyPlanAI(BaseModel):
+    """AI-generated monthly workout plan (28-31 days)"""
     title: str
     description: str
-    days: List[PlanDay] = Field(..., min_items=7, max_items=7)
+    days: List[PlanDay] = Field(..., min_items=28, max_items=31)
+
+# Backward compatibility alias
+WeeklyPlanAI = MonthlyPlanAI
 
 class UserProfileData(BaseModel):
     age: int

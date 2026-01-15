@@ -1,0 +1,11 @@
+# deps
+node_modules/
+**/node_modules/
+
+# pnpm
+.pnpm-store/
+
+# nuxt
+.nuxt/
+.output/
+dist/

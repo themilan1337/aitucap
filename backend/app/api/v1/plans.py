@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from app.database import get_db
 from app.api.deps import get_current_user
 from app.models.user import User, UserProfile
-from app.models.plan import WeeklyPlan, PlanDay, PlannedExercise
+from app.models.plan import WorkoutPlan, PlanDay, PlannedExercise
 from app.services.ai_service import ai_planner
 from app.schemas.plan import UserProfileData
 import logging
@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/generate")
-async def generate_weekly_plan(
+async def generate_monthly_plan(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Generate a new weekly plan using AI based on user profile"""
+    """Generate a new 30-day monthly plan using AI based on user profile"""
     
     # Get user profile
     result = await db.execute(
@@ -37,30 +37,31 @@ async def generate_weekly_plan(
         fitness_level=profile.fitness_level
     )
     
-    # Generate plan via AI
+    # Generate 30-day plan via AI
+    logger.info(f"Generating 30-day plan for user {current_user.id}")
     ai_plan = await ai_planner.generate_plan(user_data)
-    
+
     # Deactivate old plans
     await db.execute(
-        update(WeeklyPlan)
-        .filter(WeeklyPlan.user_id == current_user.id)
+        update(WorkoutPlan)
+        .filter(WorkoutPlan.user_id == current_user.id)
         .values(is_active=False)
     )
-    
-    # Create new WeeklyPlan
-    new_plan = WeeklyPlan(
+
+    # Create new WorkoutPlan
+    new_plan = WorkoutPlan(
         user_id=current_user.id,
-        week_start_date=date.today(),
+        week_start_date=date.today(),  # Actually plan_start_date
         is_active=True
     )
     db.add(new_plan)
     await db.flush() # Get plan.id
     
-    # Create days and exercises
+    # Create days and exercises (30 days instead of 7)
     for i, ai_day in enumerate(ai_plan.days):
         plan_day = PlanDay(
             plan_id=new_plan.id,
-            day_number=ai_day.day_number,
+            day_number=ai_day.day_number - 1,  # Convert 1-30 to 0-29 for storage
             date=date.today() + timedelta(days=i),
             is_rest_day=ai_day.is_rest_day
         )
@@ -89,17 +90,22 @@ async def generate_weekly_plan(
             db.add(planned_ex)
             
     await db.commit()
-    return {"status": "success", "plan_id": str(new_plan.id)}
+    logger.info(f"Successfully created 30-day plan {new_plan.id} for user {current_user.id}")
+    return {
+        "status": "success",
+        "plan_id": str(new_plan.id),
+        "duration_days": len(ai_plan.days)
+    }
 
 @router.get("/current")
 async def get_current_plan(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get the active weekly plan for the current user"""
+    """Get the active workout plan for the current user"""
     result = await db.execute(
-        select(WeeklyPlan)
-        .filter(WeeklyPlan.user_id == current_user.id, WeeklyPlan.is_active == True)
+        select(WorkoutPlan)
+        .filter(WorkoutPlan.user_id == current_user.id, WorkoutPlan.is_active == True)
     )
     plan = result.scalars().first()
     

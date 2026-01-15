@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -46,7 +46,7 @@ class ExercisePerformance(Base):
     reps = Column(Integer, nullable=False)
     duration = Column(Integer, nullable=False)  # seconds
     form_accuracy = Column(Float, nullable=False)  # 0.0 - 1.0
-    form_corrections = Column(Integer, nullable=False)
+    form_corrections = Column(JSON, nullable=False, server_default='[]')
     calories_burned = Column(Float, nullable=False)
     order_index = Column(Integer, nullable=False)
 

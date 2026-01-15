@@ -24,6 +24,10 @@ class ExerciseCounter:
         self.last_count_time = 0
         self.min_rep_time = 0.5  # Minimum time between reps (seconds)
 
+        # Form corrections
+        self.form_corrections = []
+        self.last_angle = None
+
         # Exercise configurations
         self.exercise_configs = self.load_exercise_configs(exercises_config_path)
 
@@ -67,6 +71,8 @@ class ExerciseCounter:
         self.stage = None
         self.angle_history.clear()
         self.leg_stages = {'left': None, 'right': None}
+        self.form_corrections = []
+        self.last_angle = None
 
     def calculate_angle(self, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> Optional[float]:
         """Calculate angle between three points"""
@@ -169,6 +175,9 @@ class ExerciseCounter:
             up_threshold = config['up_angle']
             down_threshold = config['down_angle']
 
+            # Check form quality
+            self._check_form_quality(smoothed_angle, exercise_type, up_threshold, down_threshold)
+
             # Counting logic with timing check
             if smoothed_angle > up_threshold:
                 self.stage = "up"
@@ -262,3 +271,53 @@ class ExerciseCounter:
     def get_stage(self) -> Optional[str]:
         """Get current exercise stage"""
         return self.stage
+
+    def get_form_corrections(self) -> List[str]:
+        """Return and reset form corrections"""
+        corrections = self.form_corrections.copy()
+        self.form_corrections = []
+        return corrections
+
+    def _check_form_quality(
+        self,
+        angle: float,
+        exercise_type: str,
+        up_threshold: float,
+        down_threshold: float
+    ):
+        """
+        Analyze form and add corrections if needed.
+
+        Args:
+            angle: Current angle measurement
+            exercise_type: Type of exercise being performed
+            up_threshold: Upper angle threshold for exercise
+            down_threshold: Lower angle threshold for exercise
+        """
+
+        # Squat-specific corrections
+        if exercise_type == "squat":
+            if self.stage == 'down' and angle > down_threshold + 20:
+                self.form_corrections.append("Присядьте глубже - колени должны быть под углом 90°")
+            elif self.stage == 'up' and angle < up_threshold - 10:
+                self.form_corrections.append("Полностью выпрямите ноги")
+
+        # Pushup-specific corrections
+        elif exercise_type == "pushup":
+            if self.stage == 'down' and angle > down_threshold + 15:
+                self.form_corrections.append("Опуститесь ниже - грудь ближе к полу")
+            elif self.stage == 'up' and angle < up_threshold - 15:
+                self.form_corrections.append("Полностью выпрямите руки")
+
+        # Lunge-specific corrections
+        elif exercise_type == "lunge":
+            if self.stage == 'down' and angle > down_threshold + 20:
+                self.form_corrections.append("Опустите колено ниже - угол 90°")
+
+        # General correction for insufficient range of motion
+        if self.last_angle is not None:
+            angle_change = abs(angle - self.last_angle)
+            if angle_change < 5 and self.stage is not None:
+                self.form_corrections.append("Увеличьте амплитуду движения")
+
+        self.last_angle = angle

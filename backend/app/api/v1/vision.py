@@ -146,7 +146,8 @@ async def websocket_pose_detection(websocket: WebSocket):
                         "success": True,
                         "exercise": exercise_type,
                         "reps": proc.exercise_counter.get_counter(),
-                        "stage": proc.exercise_counter.get_stage()
+                        "stage": proc.exercise_counter.get_stage(),
+                        "form_corrections": proc.exercise_counter.get_form_corrections()
                     }
 
                     # Add keypoints if detected

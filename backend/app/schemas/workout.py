@@ -8,7 +8,7 @@ class ExercisePerformanceCreate(BaseModel):
     reps: int
     duration: int # seconds
     form_accuracy: float # 0.0 - 1.0
-    form_corrections: int
+    form_corrections: List[str] = []
     calories_burned: float
     order_index: int
 
@@ -37,6 +37,7 @@ class WorkoutSessionResponse(BaseModel):
     total_calories: float
     average_form_accuracy: float
     exercises: List[ExercisePerformanceResponse]
+    new_achievements: Optional[List[dict]] = None
 
     class Config:
         from_attributes = True
