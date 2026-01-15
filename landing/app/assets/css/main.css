@@ -1,0 +1,35 @@
+@import url('https://fonts.cdnfonts.com/css/google-sans');
+@import "tailwindcss";
+
+:root {
+    --color-neon: #ccff00;
+    --color-bg: #000000;
+    --color-card: #111111;
+    --color-card-hover: #1a1a1a;
+    --font-product: "Google Sans";
+}
+
+body,
+html {
+    font-family: var(--font-product) !important;
+    background-color: var(--color-bg);
+    color: white;
+    overscroll-behavior-y: none;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
