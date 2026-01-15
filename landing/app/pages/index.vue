@@ -1,69 +1,5 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { ref, onMounted, onUnmounted } from 'vue'
-
-// Intersection Observer for scroll animations
-const heroRef = ref<HTMLElement | null>(null)
-const featuresRef = ref<HTMLElement | null>(null)
-const howItWorksRef = ref<HTMLElement | null>(null)
-const benefitsRef = ref<HTMLElement | null>(null)
-const ctaRef = ref<HTMLElement | null>(null)
-
-const isVisible = ref({
-  hero: false,
-  features: false,
-  howItWorks: false,
-  benefits: false,
-  cta: false,
-})
-
-let observer: IntersectionObserver | null = null
-
-onMounted(() => {
-  // Smooth scroll behavior
-  document.documentElement.style.scrollBehavior = 'smooth'
-
-  // Setup intersection observer for animations
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const target = entry.target as HTMLElement
-          const key = target.dataset.section as keyof typeof isVisible.value
-          if (key) {
-            isVisible.value[key] = true
-          }
-        }
-      })
-    },
-    { threshold: 0.1 }
-  )
-
-  // Observe sections
-  if (heroRef.value) observer.observe(heroRef.value)
-  if (featuresRef.value) observer.observe(featuresRef.value)
-  if (howItWorksRef.value) observer.observe(howItWorksRef.value)
-  if (benefitsRef.value) observer.observe(benefitsRef.value)
-  if (ctaRef.value) observer.observe(ctaRef.value)
-
-  // Parallax effect
-  window.addEventListener('scroll', handleParallax)
-})
-
-onUnmounted(() => {
-  if (observer) observer.disconnect()
-  window.removeEventListener('scroll', handleParallax)
-})
-
-const handleParallax = () => {
-  const scrolled = window.scrollY
-  const parallaxElements = document.querySelectorAll('.parallax')
-  parallaxElements.forEach((el) => {
-    const speed = parseFloat((el as HTMLElement).dataset.speed || '0.5')
-    const yPos = -(scrolled * speed)
-    ;(el as HTMLElement).style.transform = `translateY(${yPos}px)`
-  })
-}
 
 const features = [
   {
@@ -136,24 +72,19 @@ const benefits = [
 <template>
   <div class="landing-page">
     <!-- Hero Section -->
-    <section
-      ref="heroRef"
-      data-section="hero"
-      class="hero-section relative min-h-screen flex items-center justify-center overflow-hidden"
-      :class="{ 'animate-in': isVisible.hero }"
-    >
+    <section class="hero-section relative min-h-screen flex items-center justify-center overflow-hidden">
       <!-- Background Effects -->
       <div class="absolute inset-0 bg-gradient-radial from-neon/5 via-transparent to-transparent opacity-50"></div>
-      <div class="absolute top-20 left-1/4 w-96 h-96 bg-neon/10 rounded-full blur-[120px] animate-pulse-slow parallax" data-speed="0.3"></div>
-      <div class="absolute bottom-20 right-1/4 w-80 h-80 bg-neon/5 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 1s"></div>
+      <div class="absolute top-20 left-1/4 w-96 h-96 bg-neon/10 rounded-full blur-[120px]"></div>
+      <div class="absolute bottom-20 right-1/4 w-80 h-80 bg-neon/5 rounded-full blur-[100px]"></div>
 
       <div class="container mx-auto px-6 py-20 relative z-10">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
           <!-- Text Content -->
           <div class="hero-content space-y-8">
-            <div class="space-y-4 animate-slide-up" style="animation-delay: 0.1s">
+            <div class="space-y-4">
               <div class="inline-block px-4 py-2 bg-neon/10 border border-neon/30 rounded-full text-neon text-sm font-medium backdrop-blur-sm">
-                AITU CUP 2024
+                AITU CUP 2026
               </div>
               <h1 class="text-5xl md:text-7xl font-bold leading-tight">
                 Тренируйтесь <br />
@@ -162,22 +93,22 @@ const benefits = [
               </h1>
             </div>
 
-            <p class="text-xl text-gray-400 max-w-xl animate-slide-up" style="animation-delay: 0.2s">
+            <p class="text-xl text-gray-400 max-w-xl">
               MuscleUp Vision использует компьютерное зрение для анализа техники упражнений.
               Тренируйтесь безопасно и эффективно с персональным ИИ-тренером.
             </p>
 
-            <div class="flex flex-col sm:flex-row gap-4 animate-slide-up" style="animation-delay: 0.3s">
+            <div class="flex flex-col sm:flex-row gap-4">
               <a
                 href="http://localhost:3001"
-                class="group px-8 py-4 bg-neon text-black font-bold text-lg rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all duration-300 shadow-neon hover:shadow-neon-lg flex items-center justify-center gap-3"
+                class="group px-8 py-4 bg-neon text-black font-bold text-lg rounded-2xl hover:brightness-110 transition-all duration-300 shadow-neon hover:shadow-neon-lg flex items-center justify-center gap-3"
               >
                 Начать тренировку
                 <Icon icon="hugeicons:arrow-right-02" class="text-2xl group-hover:translate-x-1 transition-transform" />
               </a>
               <a
                 href="#how-it-works"
-                class="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold text-lg rounded-2xl hover:bg-white/10 hover:border-neon/50 active:scale-[0.98] transition-all duration-300 backdrop-blur-sm flex items-center justify-center gap-3"
+                class="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold text-lg rounded-2xl hover:bg-white/10 hover:border-neon/50 transition-all duration-300 backdrop-blur-sm flex items-center justify-center gap-3"
               >
                 Как это работает
                 <Icon icon="hugeicons:arrow-down-01" class="text-2xl" />
@@ -185,7 +116,7 @@ const benefits = [
             </div>
 
             <!-- Stats -->
-            <div class="flex gap-8 pt-8 animate-slide-up" style="animation-delay: 0.4s">
+            <div class="flex gap-8 pt-8">
               <div>
                 <div class="text-3xl font-bold text-neon">95%</div>
                 <div class="text-sm text-gray-500">Точность анализа</div>
@@ -202,32 +133,22 @@ const benefits = [
           </div>
 
           <!-- Hero Image -->
-          <div class="relative animate-slide-up" style="animation-delay: 0.2s">
+          <div class="relative">
             <div class="absolute inset-0 bg-gradient-to-t from-neon/20 via-transparent to-transparent rounded-3xl blur-2xl"></div>
-            <div class="relative parallax" data-speed="0.2">
+            <div class="relative">
               <img
                 src="/girl.png"
                 alt="MuscleUp Vision AI Fitness"
-                class="w-full h-auto drop-shadow-2xl animate-float"
+                class="w-full h-auto drop-shadow-2xl"
               />
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Scroll Indicator -->
-      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-        <Icon icon="hugeicons:arrow-down-01" class="text-3xl text-neon/50" />
-      </div>
     </section>
 
     <!-- Features Section -->
-    <section
-      ref="featuresRef"
-      data-section="features"
-      class="features-section py-32 relative"
-      :class="{ 'animate-in': isVisible.features }"
-    >
+    <section class="features-section py-32 relative">
       <div class="container mx-auto px-6">
         <div class="text-center mb-16 space-y-4">
           <h2 class="text-4xl md:text-6xl font-bold">
@@ -242,10 +163,9 @@ const benefits = [
           <div
             v-for="(feature, index) in features"
             :key="index"
-            class="feature-card group bg-card rounded-3xl p-8 hover:bg-card-hover transition-all duration-500 border border-white/5 hover:border-neon/50 hover:shadow-neon-card animate-slide-up"
-            :style="{ 'animation-delay': `${index * 0.1}s` }"
+            class="feature-card group bg-card rounded-3xl p-8 hover:bg-card-hover transition-all duration-300 border border-white/5 hover:border-neon/50 hover:shadow-neon-card"
           >
-            <div class="w-16 h-16 rounded-2xl bg-neon/10 flex items-center justify-center mb-6 group-hover:bg-neon/20 group-hover:scale-110 transition-all duration-500">
+            <div class="w-16 h-16 rounded-2xl bg-neon/10 flex items-center justify-center mb-6 group-hover:bg-neon/20 transition-all duration-300">
               <Icon :icon="feature.icon" class="text-4xl text-neon" />
             </div>
             <h3 class="text-xl font-bold mb-3">{{ feature.title }}</h3>
@@ -256,13 +176,7 @@ const benefits = [
     </section>
 
     <!-- How It Works Section -->
-    <section
-      id="how-it-works"
-      ref="howItWorksRef"
-      data-section="howItWorks"
-      class="how-it-works-section py-32 relative"
-      :class="{ 'animate-in': isVisible.howItWorks }"
-    >
+    <section id="how-it-works" class="how-it-works-section py-32 relative">
       <!-- Background Effect -->
       <div class="absolute inset-0 bg-gradient-to-b from-transparent via-neon/5 to-transparent"></div>
 
@@ -282,17 +196,7 @@ const benefits = [
             :key="index"
             class="step-card relative"
           >
-            <!-- Connection Line -->
-            <div
-              v-if="index < steps.length - 1"
-              class="hidden md:block absolute left-16 top-32 w-0.5 h-20 bg-gradient-to-b from-neon/50 to-transparent"
-            ></div>
-
-            <div
-              class="flex flex-col md:flex-row gap-8 items-start md:items-center bg-card rounded-3xl p-8 border border-white/5 hover:border-neon/30 transition-all duration-500 hover:shadow-neon-card animate-slide-up"
-              :style="{ 'animation-delay': `${index * 0.15}s` }"
-            >
-              <!-- Step Number -->
+            <div class="flex flex-col md:flex-row gap-8 items-start md:items-center bg-card rounded-3xl p-8 border border-white/5 hover:border-neon/30 transition-all duration-300 hover:shadow-neon-card">
               <div class="flex-shrink-0 relative">
                 <div class="w-32 h-32 rounded-2xl bg-neon flex items-center justify-center shadow-neon">
                   <Icon :icon="step.icon" class="text-6xl text-black" />
@@ -314,12 +218,7 @@ const benefits = [
     </section>
 
     <!-- Benefits Section -->
-    <section
-      ref="benefitsRef"
-      data-section="benefits"
-      class="benefits-section py-32 relative"
-      :class="{ 'animate-in': isVisible.benefits }"
-    >
+    <section class="benefits-section py-32 relative">
       <div class="container mx-auto px-6">
         <div class="text-center mb-16 space-y-4">
           <h2 class="text-4xl md:text-6xl font-bold">
@@ -334,11 +233,10 @@ const benefits = [
           <div
             v-for="(benefit, index) in benefits"
             :key="index"
-            class="benefit-card group bg-gradient-to-br from-card to-card-hover rounded-3xl p-10 border border-white/5 hover:border-neon/50 transition-all duration-500 hover:shadow-neon-card animate-slide-up"
-            :style="{ 'animation-delay': `${index * 0.1}s` }"
+            class="benefit-card group bg-gradient-to-br from-card to-card-hover rounded-3xl p-10 border border-white/5 hover:border-neon/50 transition-all duration-300 hover:shadow-neon-card"
           >
             <div class="flex items-start gap-6">
-              <div class="w-20 h-20 rounded-2xl bg-neon/10 flex items-center justify-center flex-shrink-0 group-hover:bg-neon/20 group-hover:scale-110 transition-all duration-500">
+              <div class="w-20 h-20 rounded-2xl bg-neon/10 flex items-center justify-center flex-shrink-0 group-hover:bg-neon/20 transition-all duration-300">
                 <Icon :icon="benefit.icon" class="text-5xl text-neon" />
               </div>
               <div class="space-y-3">
@@ -352,51 +250,30 @@ const benefits = [
     </section>
 
     <!-- CTA Section -->
-    <section
-      ref="ctaRef"
-      data-section="cta"
-      class="cta-section py-32 relative overflow-hidden"
-      :class="{ 'animate-in': isVisible.cta }"
-    >
+    <section class="cta-section py-32 relative overflow-hidden">
       <!-- Background Effects -->
       <div class="absolute inset-0 bg-gradient-radial from-neon/10 via-transparent to-transparent"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-neon/5 rounded-full blur-[150px] animate-pulse-slow"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-neon/5 rounded-full blur-[150px]"></div>
 
       <div class="container mx-auto px-6 relative z-10">
         <div class="max-w-4xl mx-auto text-center space-y-8">
-          <h2 class="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight animate-slide-up">
+          <h2 class="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
             Начните тренироваться <br />
             <span class="text-neon glow-text">правильно сегодня</span>
           </h2>
 
-          <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto animate-slide-up" style="animation-delay: 0.1s">
+          <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
             Присоединяйтесь к революции в фитнесе. Персональный ИИ-тренер всегда с вами.
           </p>
 
-          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style="animation-delay: 0.2s">
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
               href="http://localhost:3001"
-              class="group px-10 py-5 bg-neon text-black font-bold text-xl rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all duration-300 shadow-neon-lg hover:shadow-neon-xl flex items-center gap-3"
+              class="group px-10 py-5 bg-neon text-black font-bold text-xl rounded-2xl hover:brightness-110 transition-all duration-300 shadow-neon-lg hover:shadow-neon-xl flex items-center gap-3"
             >
               Начать тренировку
               <Icon icon="hugeicons:arrow-right-02" class="text-2xl group-hover:translate-x-1 transition-transform" />
             </a>
-          </div>
-
-          <!-- Additional Info -->
-          <div class="flex flex-wrap justify-center gap-8 pt-12 text-gray-500 animate-slide-up" style="animation-delay: 0.3s">
-            <div class="flex items-center gap-2">
-              <Icon icon="hugeicons:checkmark-circle-01" class="text-xl text-neon" />
-              <span>Бесплатно навсегда</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <Icon icon="hugeicons:shield-check" class="text-xl text-neon" />
-              <span>Безопасно и конфиденциально</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <Icon icon="hugeicons:ai-brain-01" class="text-xl text-neon" />
-              <span>Технология будущего</span>
-            </div>
           </div>
         </div>
       </div>
@@ -414,7 +291,7 @@ const benefits = [
           </div>
 
           <div class="text-center md:text-right text-gray-500">
-            <p>© 2024 AITU CUP. Создано с помощью ИИ.</p>
+            <p>© 2026 AITU CUP. Made by Milan, Bizhan and Sultan.</p>
           </div>
         </div>
       </div>
@@ -429,54 +306,6 @@ const benefits = [
   --color-bg: #000000;
   --color-card: #111111;
   --color-card-hover: #1a1a1a;
-}
-
-/* Animations */
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.8s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 4s ease-in-out infinite;
-}
-
-/* Section animations */
-.animate-in .animate-slide-up {
-  animation: slide-up 0.8s ease-out forwards;
 }
 
 /* Glow Effects */
@@ -532,10 +361,5 @@ const benefits = [
 
 .border-neon {
   border-color: var(--color-neon);
-}
-
-/* Smooth transitions */
-* {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
