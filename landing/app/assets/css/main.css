@@ -9,12 +9,21 @@
     --font-product: "Google Sans";
 }
 
+@theme {
+    --color-neon: var(--color-neon);
+    --color-bg: var(--color-bg);
+    --color-card: var(--color-card);
+    --color-card-hover: var(--color-card-hover);
+    --font-product: var(--font-product);
+}
+
 body,
 html {
     font-family: var(--font-product) !important;
     background-color: var(--color-bg);
     color: white;
     overscroll-behavior-y: none;
+    scroll-behavior: smooth;
 }
 
 ::-webkit-scrollbar {
