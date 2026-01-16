@@ -93,15 +93,21 @@ services:
       # Production settings
       ENVIRONMENT: production
       LOG_LEVEL: info
+      # nginx-proxy configuration
+      VIRTUAL_HOST: api.muscleup.fitness
+      VIRTUAL_PORT: 8000
+      LETSENCRYPT_HOST: api.muscleup.fitness
+      LETSENCRYPT_EMAIL: admin@muscleup.fitness
     volumes:
       # Mount ML models as read-only for security
       - ./models:/app/models:ro
       # Application logs
       - ./logs:/app/logs
-    ports:
-      - "8001:8000"  # External port 8001 for this project
+    expose:
+      - "8000"  # Expose to nginx-proxy, not to host
     networks:
       - muscleup_network
+      - nginx-proxy  # Connect to nginx-proxy network
     depends_on:
       postgres:
         condition: service_healthy
@@ -136,6 +142,8 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/24
+  nginx-proxy:
+    external: true  # Connect to existing nginx-proxy network
 
 volumes:
   postgres_data:
