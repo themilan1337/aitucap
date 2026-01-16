@@ -1,0 +1,146 @@
+version: '3.8'
+
+# Production-ready Docker Compose configuration
+# This setup includes:
+# - Isolated networks for each project
+# - Health checks for all services
+# - Resource limits
+# - Restart policies
+# - Persistent volumes
+# - Proper logging configuration
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: muscleup_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # Performance tuning
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_MAX_CONNECTIONS: 100
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Backup location
+      - ./backups/postgres:/backups
+    ports:
+      - "5433:5432"  # External port 5433 to avoid conflicts
+    networks:
+      - muscleup_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: muscleup_redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"  # External port 6380 to avoid conflicts
+    networks:
+      - muscleup_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: muscleup_backend
+    env_file:
+      - .env.production
+    environment:
+      # Override database connections to use Docker network
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      # Production settings
+      ENVIRONMENT: production
+      LOG_LEVEL: info
+    volumes:
+      # Mount ML models as read-only for security
+      - ./models:/app/models:ro
+      # Application logs
+      - ./logs:/app/logs
+    ports:
+      - "8001:8000"  # External port 8001 for this project
+    networks:
+      - muscleup_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service=muscleup-backend"
+
+networks:
+  muscleup_network:
+    name: muscleup_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+volumes:
+  postgres_data:
+    name: muscleup_postgres_data
+    driver: local
+  redis_data:
+    name: muscleup_redis_data
+    driver: local
