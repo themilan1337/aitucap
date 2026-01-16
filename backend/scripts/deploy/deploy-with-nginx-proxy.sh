@@ -104,8 +104,14 @@ $DOCKER_COMPOSE -f docker-compose.prod.yml up -d
 
 echo -e "${GREEN}✓ Application deployed${NC}"
 
-# 6. Monitor SSL certificate generation
-echo -e "\n${YELLOW}[6/6] Monitoring SSL certificate generation...${NC}"
+
+# 6. Run database migrations
+echo -e "\n${YELLOW}[6/7] Running database migrations...${NC}"
+$DOCKER_COMPOSE -f docker-compose.prod.yml exec -T backend alembic upgrade head
+echo -e "${GREEN}✓ Database migrations applied${NC}"
+
+# 7. Monitor SSL certificate generation
+echo -e "\n${YELLOW}[7/7] Monitoring SSL certificate generation...${NC}"
 echo -e "${BLUE}This may take 1-2 minutes...${NC}"
 echo -e ""
 

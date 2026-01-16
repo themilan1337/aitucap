@@ -100,6 +100,10 @@ cd "$RELEASE_PATH"
 # Start containers
 $DOCKER_COMPOSE -f docker-compose.prod.yml up -d
 
+# Run migrations
+echo -e "\n${YELLOW}Running database migrations...${NC}"
+$DOCKER_COMPOSE -f docker-compose.prod.yml exec -T backend alembic upgrade head
+
 # ============================================================================
 # Health check on new deployment
 # ============================================================================
