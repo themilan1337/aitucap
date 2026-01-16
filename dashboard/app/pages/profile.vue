@@ -89,7 +89,7 @@ const handleLogoutAll = async () => {
       <p class="text-gray-400 text-sm mb-1">{{ userEmail }}</p>
       <p class="text-gray-500 text-xs mb-4">С нами с {{ joinDate }}</p>
 
-      <button class="px-8 py-3 bg-neon text-black font-semibold rounded-xl hover:brightness-110 transition-all">
+      <button @click="$router.push('/profile/edit')" class="px-8 py-3 bg-neon text-black font-semibold rounded-xl hover:brightness-110 transition-all">
         Редактировать профиль
       </button>
     </div>
@@ -147,7 +147,7 @@ const handleLogoutAll = async () => {
 
     <!-- Settings Menu -->
     <div class="bg-[#1A1A1A] rounded-2xl overflow-hidden mb-4">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
+      <button @click="$router.push('/profile/edit')" class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
         <div class="flex items-center gap-3">
           <Icon icon="heroicons:user-circle" class="text-neon text-xl" />
           <span class="text-white">Личные данные</span>
@@ -155,15 +155,7 @@ const handleLogoutAll = async () => {
         <Icon icon="heroicons:chevron-right" class="text-gray-500" />
       </button>
 
-      <button class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
-        <div class="flex items-center gap-3">
-          <Icon icon="heroicons:bell" class="text-neon text-xl" />
-          <span class="text-white">Уведомления</span>
-        </div>
-        <Icon icon="heroicons:chevron-right" class="text-gray-500" />
-      </button>
-
-      <button class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
+      <button @click="$router.push('/settings/camera')" class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
         <div class="flex items-center gap-3">
           <Icon icon="heroicons:camera" class="text-neon text-xl" />
           <span class="text-white">Настройки камеры</span>
@@ -171,7 +163,7 @@ const handleLogoutAll = async () => {
         <Icon icon="heroicons:chevron-right" class="text-gray-500" />
       </button>
 
-      <button class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
+      <button class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5 opacity-50 cursor-not-allowed" disabled>
         <div class="flex items-center gap-3">
           <Icon icon="heroicons:globe-alt" class="text-neon text-xl" />
           <span class="text-white">Язык</span>
@@ -182,7 +174,7 @@ const handleLogoutAll = async () => {
         </div>
       </button>
 
-      <button class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
+      <button @click="$router.push('/support')" class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors border-b border-white/5">
         <div class="flex items-center gap-3">
           <Icon icon="heroicons:question-mark-circle" class="text-neon text-xl" />
           <span class="text-white">Помощь и поддержка</span>
@@ -190,7 +182,7 @@ const handleLogoutAll = async () => {
         <Icon icon="heroicons:chevron-right" class="text-gray-500" />
       </button>
 
-      <button class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors">
+      <button @click="$router.push('/about')" class="w-full flex items-center justify-between p-4 hover:bg-[#222] transition-colors">
         <div class="flex items-center gap-3">
           <Icon icon="heroicons:information-circle" class="text-neon text-xl" />
           <span class="text-white">О приложении</span>

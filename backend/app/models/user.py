@@ -43,12 +43,33 @@ class UserProfile(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
 
-    # Fitness data
+    # Basic data
     age = Column(Integer, nullable=True)
     weight = Column(Float, nullable=True)  # kg
     height = Column(Integer, nullable=True)  # cm
-    fitness_goal = Column(String(50), nullable=True)  # 'lose_weight' | 'get_toned' | 'improve_shape'
+    gender = Column(String(20), nullable=True)  # 'male' | 'female' | 'other'
+
+    # Body metrics (for more accurate plan generation)
+    target_weight = Column(Float, nullable=True)  # kg - desired weight
+    body_fat_percentage = Column(Float, nullable=True)  # % - optional
+
+    # Fitness data
+    fitness_goal = Column(String(50), nullable=True)  # 'lose_weight' | 'gain_muscle' | 'get_toned' | 'improve_endurance' | 'maintain'
     fitness_level = Column(String(50), nullable=True)  # 'beginner' | 'intermediate' | 'advanced'
+
+    # Activity & Availability
+    activity_level = Column(String(50), nullable=True)  # 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
+    weekly_workout_days = Column(Integer, nullable=True)  # 3-7 days per week
+    workout_duration_preference = Column(Integer, nullable=True)  # minutes per session (15, 30, 45, 60)
+
+    # Health considerations
+    has_injuries = Column(Boolean, default=False)
+    injury_details = Column(String(500), nullable=True)  # Description of injuries or limitations
+    medical_conditions = Column(String(500), nullable=True)  # Relevant medical conditions
+
+    # Equipment availability
+    has_equipment = Column(Boolean, default=False)
+    available_equipment = Column(String(500), nullable=True)  # Comma-separated list
 
     # Preferences
     preferred_units = Column(String(10), default="metric")  # 'metric' | 'imperial'
