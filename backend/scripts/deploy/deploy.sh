@@ -9,6 +9,13 @@
 
 set -e
 
+# Determine which docker-compose command to use
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    DOCKER_COMPOSE="docker compose"
+fi
+
 # Configuration
 PROJECT_NAME="muscleup"
 ENVIRONMENT=${1:-production}
@@ -91,7 +98,7 @@ echo -e "\n${YELLOW}[5/7] Starting new deployment...${NC}"
 cd "$RELEASE_PATH"
 
 # Start containers
-docker-compose -f docker-compose.prod.yml up -d
+$DOCKER_COMPOSE -f docker-compose.prod.yml up -d
 
 # ============================================================================
 # Health check on new deployment
@@ -116,7 +123,7 @@ done
 if [ "$NEW_HEALTHY" != "true" ]; then
     echo -e "${RED}✗ New deployment failed health check${NC}"
     echo -e "${YELLOW}Rolling back...${NC}"
-    docker-compose -f docker-compose.prod.yml down
+    $DOCKER_COMPOSE -f docker-compose.prod.yml down
     exit 1
 fi
 

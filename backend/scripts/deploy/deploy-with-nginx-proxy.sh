@@ -14,6 +14,13 @@
 
 set -e
 
+# Determine which docker-compose command to use
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    DOCKER_COMPOSE="docker compose"
+fi
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -91,9 +98,9 @@ echo -e "${GREEN}✓ .env.production exists${NC}"
 
 # 5. Build and deploy
 echo -e "\n${YELLOW}[5/6] Building and deploying application...${NC}"
-docker-compose -f docker-compose.prod.yml pull
-docker-compose -f docker-compose.prod.yml build --no-cache
-docker-compose -f docker-compose.prod.yml up -d
+$DOCKER_COMPOSE -f docker-compose.prod.yml pull
+$DOCKER_COMPOSE -f docker-compose.prod.yml build --no-cache
+$DOCKER_COMPOSE -f docker-compose.prod.yml up -d
 
 echo -e "${GREEN}✓ Application deployed${NC}"
 
@@ -123,7 +130,7 @@ echo -e "${BLUE}========================================${NC}"
 
 # Check container status
 echo -e "\n${YELLOW}Running containers:${NC}"
-docker-compose -f docker-compose.prod.yml ps
+$DOCKER_COMPOSE -f docker-compose.prod.yml ps
 
 # Check if certificate is being generated
 echo -e "\n${YELLOW}Checking SSL certificate...${NC}"
@@ -155,17 +162,17 @@ echo -e "${BLUE}  Useful Commands${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo -e ""
 echo -e "View logs:"
-echo -e "  docker-compose -f docker-compose.prod.yml logs -f backend"
+echo -e "  $DOCKER_COMPOSE -f docker-compose.prod.yml logs -f backend"
 echo -e "  docker logs nginx-proxy-acme -f"
 echo -e ""
 echo -e "Check certificate:"
 echo -e "  docker exec nginx-proxy ls -la /etc/nginx/certs/"
 echo -e ""
 echo -e "Restart services:"
-echo -e "  docker-compose -f docker-compose.prod.yml restart backend"
+echo -e "  $DOCKER_COMPOSE -f docker-compose.prod.yml restart backend"
 echo -e ""
 echo -e "Stop all:"
-echo -e "  docker-compose -f docker-compose.prod.yml down"
+echo -e "  $DOCKER_COMPOSE -f docker-compose.prod.yml down"
 echo -e ""
 
 echo -e "${GREEN}========================================${NC}"
