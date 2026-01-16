@@ -46,7 +46,7 @@ FROM <base-image>:<version>-slim
 # CMD with exec form for proper signal handling
 ```
 
-### 2. **docker-compose.prod.yml**
+### 2. **docker compose.prod.yml**
 Create a production Docker Compose configuration:
 
 **Requirements**:
@@ -234,7 +234,7 @@ Ensure the generated configuration includes:
 
 - [ ] Non-root user in Docker container
 - [ ] Read-only file systems where possible
-- [ ] No secrets in Dockerfiles or docker-compose files
+- [ ] No secrets in Dockerfiles or docker compose files
 - [ ] Environment variables for all secrets
 - [ ] SSL/TLS with modern ciphers
 - [ ] Security headers (HSTS, CSP, etc.)
@@ -339,7 +339,7 @@ After running this prompt, the AI should generate:
 ```
 <project-root>/
 ├── Dockerfile.prod
-├── docker-compose.prod.yml
+├── docker compose.prod.yml
 ├── .env.production.example
 ├── .github/
 │   └── workflows/
@@ -362,8 +362,8 @@ After generation, test locally:
 # Build production image
 docker build -f Dockerfile.prod -t myapp:test .
 
-# Test docker-compose
-docker-compose -f docker-compose.prod.yml config
+# Test docker compose
+docker compose -f docker compose.prod.yml config
 
 # Test Nginx config
 nginx -t -c nginx/<project>.conf
@@ -402,7 +402,7 @@ nginx -t -c nginx/<project>.conf
 To run multiple backend instances:
 
 ```yaml
-# In docker-compose.prod.yml
+# In docker compose.prod.yml
 backend:
   deploy:
     replicas: 3
@@ -420,11 +420,11 @@ upstream myapp_backend {
 
 ### Database Read Replicas
 
-Add read replicas in docker-compose and use read/write splitting in application.
+Add read replicas in docker compose and use read/write splitting in application.
 
 ### Background Workers
 
-Add worker service in docker-compose:
+Add worker service in docker compose:
 ```yaml
 worker:
   build: .

@@ -63,7 +63,7 @@ RELEASE_PATH="$DEPLOY_PATH/releases/$TIMESTAMP"
 mkdir -p "$RELEASE_PATH"
 
 # Copy files to release directory
-cp docker-compose.prod.yml "$RELEASE_PATH/"
+cp docker compose.prod.yml "$RELEASE_PATH/"
 cp .env.production "$RELEASE_PATH/"
 cp -r nginx "$RELEASE_PATH/" || true
 cp -r models "$RELEASE_PATH/" || true
@@ -91,7 +91,7 @@ echo -e "\n${YELLOW}[5/7] Starting new deployment...${NC}"
 cd "$RELEASE_PATH"
 
 # Start containers
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker compose.prod.yml up -d
 
 # ============================================================================
 # Health check on new deployment
@@ -116,7 +116,7 @@ done
 if [ "$NEW_HEALTHY" != "true" ]; then
     echo -e "${RED}✗ New deployment failed health check${NC}"
     echo -e "${YELLOW}Rolling back...${NC}"
-    docker-compose -f docker-compose.prod.yml down
+    docker compose -f docker compose.prod.yml down
     exit 1
 fi
 

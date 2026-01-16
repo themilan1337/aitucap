@@ -4,7 +4,7 @@
 
 ### 📦 Docker конфигурация
 - ✅ `Dockerfile.prod` - Production multi-stage Docker образ
-- ✅ `docker-compose.prod.yml` - Production оркестрация без мониторинга
+- ✅ `docker compose.prod.yml` - Production оркестрация без мониторинга
 - ✅ `.env.production.example` - Шаблон переменных окружения
 
 ### 🌐 Nginx конфигурация

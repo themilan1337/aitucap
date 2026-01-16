@@ -56,7 +56,7 @@ fi
 echo -e "\n${YELLOW}Stopping current deployment...${NC}"
 
 cd "$DEPLOY_PATH/releases/$CURRENT_RELEASE"
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker compose.prod.yml down
 
 # ============================================================================
 # Start previous deployment
@@ -64,7 +64,7 @@ docker-compose -f docker-compose.prod.yml down
 echo -e "\n${YELLOW}Starting previous deployment...${NC}"
 
 cd "$DEPLOY_PATH/releases/$PREVIOUS_RELEASE"
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker compose.prod.yml up -d
 
 # ============================================================================
 # Health check

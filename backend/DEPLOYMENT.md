@@ -342,13 +342,13 @@ docker restart muscleup_backend
 
 # Остановка всех сервисов
 cd /opt/projects/muscleup/current
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker compose.prod.yml down
 
 # Запуск всех сервисов
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker compose.prod.yml up -d
 
 # Просмотр логов
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker compose.prod.yml logs -f
 ```
 
 ### Backup базы данных
@@ -573,8 +573,8 @@ cp /opt/projects/muscleup/PROMPT.md /path/to/new-project/
 sudo apt update && sudo apt upgrade -y
 
 # Обновление Docker образов
-docker-compose -f docker-compose.prod.yml pull
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker compose.prod.yml pull
+docker compose -f docker compose.prod.yml up -d
 ```
 
 ---

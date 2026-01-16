@@ -210,7 +210,7 @@ docker ps | grep muscleup
 docker logs muscleup_backend -f
 
 # Все логи
-docker-compose -f /opt/projects/muscleup/current/docker-compose.prod.yml logs -f
+docker compose -f /opt/projects/muscleup/current/docker compose.prod.yml logs -f
 
 # Nginx логи
 tail -f /var/log/nginx/muscleup_access.log
@@ -225,13 +225,13 @@ docker restart muscleup_backend
 
 # Перезапуск всех сервисов
 cd /opt/projects/muscleup/current
-docker-compose -f docker-compose.prod.yml restart
+docker compose -f docker compose.prod.yml restart
 
 # Остановить всё
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker compose.prod.yml down
 
 # Запустить всё
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker compose.prod.yml up -d
 ```
 
 ### SSL
@@ -276,7 +276,7 @@ sudo bash /path/to/backend/scripts/deploy/rollback.sh
 2. Проверить .env.production существует и правильный
 3. Проверить PostgreSQL: `docker logs muscleup_postgres`
 4. Проверить Redis: `docker logs muscleup_redis`
-5. Попробовать перезапуск: `docker-compose restart`
+5. Попробовать перезапуск: `docker compose restart`
 
 ### GitHub Actions failed
 

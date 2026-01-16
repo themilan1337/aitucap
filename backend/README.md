@@ -1,7 +1,7 @@
 # MuscleUp Backend - Production Deployment System
 
 ![Production Ready](https://img.shields.io/badge/production-ready-brightgreen)
-![Docker](https://img.shields.io/badge/docker-compose-blue)
+![Docker](https://img.shields.io/badge/docker compose-blue)
 ![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF)
 
 Полная система автоматического развертывания FastAPI backend с поддержкой множества проектов на одном Ubuntu сервере.
@@ -131,7 +131,7 @@ backend/
 │   ├── services/                # Бизнес-логика
 │   └── workouts/                # Computer vision
 │
-├── docker-compose.prod.yml      # Production конфигурация
+├── docker compose.prod.yml      # Production конфигурация
 ├── Dockerfile.prod              # Multi-stage production образ
 ├── .env.production.example      # Шаблон переменных окружения
 │
@@ -187,7 +187,7 @@ Internet
 cp .env.example .env
 
 # Запустить с Docker Compose
-docker-compose up -d
+docker compose up -d
 
 # Или локально
 python -m venv venv
@@ -283,7 +283,7 @@ curl https://api.muscleup.fitness/health
 docker ps | grep muscleup
 
 # Статус всех сервисов
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker compose.prod.yml ps
 ```
 
 ### Логи
@@ -405,7 +405,7 @@ sudo certbot --nginx -d api.myapp.com
 Horizontal scaling (несколько backend инстансов):
 
 ```yaml
-# В docker-compose.prod.yml
+# В docker compose.prod.yml
 backend:
   deploy:
     replicas: 3
