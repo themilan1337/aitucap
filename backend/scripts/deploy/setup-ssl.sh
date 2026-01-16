@@ -78,22 +78,61 @@ echo -e "${GREEN}✓ Nginx configuration is valid${NC}"
 # Reload Nginx to apply any changes
 systemctl reload nginx
 
+# Create temporary Nginx config for certificate verification
+echo -e "\n${YELLOW}Creating temporary Nginx configuration for SSL setup...${NC}"
+cat > /etc/nginx/sites-available/ssl-temp.conf <<'TEMPCONF'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name api.muscleup.fitness;
+
+    # Allow Certbot challenges
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        try_files $uri =404;
+    }
+
+    # Temporary health check (no backend needed)
+    location / {
+        return 200 "SSL Setup in Progress\n";
+        add_header Content-Type text/plain;
+    }
+}
+TEMPCONF
+
+# Disable the main site config temporarily
+if [ -L /etc/nginx/sites-enabled/muscleup.conf ]; then
+    rm /etc/nginx/sites-enabled/muscleup.conf
+    echo -e "${YELLOW}Disabled main site configuration temporarily${NC}"
+fi
+
+# Enable temporary config
+ln -sf /etc/nginx/sites-available/ssl-temp.conf /etc/nginx/sites-enabled/ssl-temp.conf
+
+# Test and reload Nginx
+nginx -t && systemctl reload nginx
+
 # Obtain SSL certificate
 echo -e "\n${YELLOW}Obtaining SSL certificate from Let's Encrypt...${NC}"
 echo -e "${YELLOW}This may take a few moments...${NC}"
 
-# Use --nginx plugin for automatic configuration
-certbot --nginx \
+# Use webroot plugin instead of nginx plugin
+certbot certonly \
+    --webroot \
+    -w /var/www/certbot \
     -d $DOMAIN \
     --email $EMAIL \
     --agree-tos \
     --no-eff-email \
-    --redirect \
-    --hsts \
-    --staple-ocsp \
     --non-interactive
 
 if [ $? -eq 0 ]; then
+    # Restore main site configuration
+    echo -e "\n${YELLOW}Restoring main site configuration...${NC}"
+    rm -f /etc/nginx/sites-enabled/ssl-temp.conf
+    ln -sf /etc/nginx/sites-available/muscleup.conf /etc/nginx/sites-enabled/muscleup.conf
+    nginx -t && systemctl reload nginx
+
     echo -e "\n${GREEN}========================================${NC}"
     echo -e "${GREEN}  SSL Certificate Installed!${NC}"
     echo -e "${GREEN}========================================${NC}"
@@ -104,8 +143,15 @@ if [ $? -eq 0 ]; then
     echo -e "Auto-renewal is configured via systemd timer"
     echo -e "Check status: systemctl status certbot.timer"
     echo -e ""
-    echo -e "${GREEN}Your API is now accessible at: https://$DOMAIN${NC}"
+    echo -e "${GREEN}Your API will be accessible at: https://$DOMAIN (after backend is started)${NC}"
 else
+    # Restore main site configuration even on failure
+    echo -e "\n${YELLOW}Restoring main site configuration...${NC}"
+    rm -f /etc/nginx/sites-enabled/ssl-temp.conf
+    if [ -f /etc/nginx/sites-available/muscleup.conf ]; then
+        ln -sf /etc/nginx/sites-available/muscleup.conf /etc/nginx/sites-enabled/muscleup.conf
+        nginx -t && systemctl reload nginx
+    fi
     echo -e "\n${RED}========================================${NC}"
     echo -e "${RED}  SSL Certificate Installation Failed${NC}"
     echo -e "${RED}========================================${NC}"
