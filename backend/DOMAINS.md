@@ -188,7 +188,7 @@ sudo systemctl restart nginx
 ### CORS Errors
 
 1. Check `.env.production` has correct ALLOWED_ORIGINS
-2. Restart backend: `docker compose -f docker compose.prod.yml restart backend`
+2. Restart backend: `docker-compose -f docker-compose.prod.yml restart backend`
 3. Check Nginx headers in response
 4. Verify frontend is using correct API URL
 

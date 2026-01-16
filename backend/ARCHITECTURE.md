@@ -68,7 +68,7 @@ Internet
 ├── projects/                        # Все проекты
 │   ├── muscleup/                    # Текущий проект
 │   │   ├── .env                     # Production переменные
-│   │   ├── docker compose.prod.yml  # Production compose
+│   │   ├── docker-compose.prod.yml  # Production compose
 │   │   ├── releases/                # Версии релизов
 │   │   │   ├── current -> v1.2.3   # Симлинк на текущую версию
 │   │   │   ├── v1.2.3/             # Текущий релиз
@@ -212,9 +212,9 @@ networks:
         - subnet: 172.20.0.0/16
 ```
 
-### Production docker compose.yml
+### Production docker-compose.yml
 ```yaml
-# /opt/projects/muscleup/docker compose.prod.yml
+# /opt/projects/muscleup/docker-compose.prod.yml
 version: '3.8'
 
 services:
@@ -637,7 +637,7 @@ ssl_dhparam /opt/nginx/ssl/dhparam.pem;
 
 ### Nginx Docker Compose
 ```yaml
-# /opt/nginx/docker compose.yml
+# /opt/nginx/docker-compose.yml
 version: '3.8'
 
 services:
@@ -960,8 +960,8 @@ fi
 # 5. Копирование .env в новый релиз
 cp "$PROJECT_DIR/.env" "$RELEASE_DIR/.env"
 
-# 6. Создание docker compose.prod.yml с правильными путями
-cat > "$RELEASE_DIR/docker compose.prod.yml" <<EOF
+# 6. Создание docker-compose.prod.yml с правильными путями
+cat > "$RELEASE_DIR/docker-compose.prod.yml" <<EOF
 version: '3.8'
 
 services:
@@ -1079,7 +1079,7 @@ echo "Starting new version on backup port..."
 export BACKEND_EXTERNAL_PORT=$((BACKEND_EXTERNAL_PORT + 1))
 
 cd "$RELEASE_DIR"
-docker compose -f docker compose.prod.yml up -d
+docker-compose -f docker-compose.prod.yml up -d
 
 # 8. Ожидание готовности
 echo "Waiting for new version to be ready..."
@@ -1094,8 +1094,8 @@ for i in $(seq 1 $RETRIES); do
 
     if [ $i -eq $RETRIES ]; then
         echo "Health check failed after $RETRIES attempts"
-        docker compose -f docker compose.prod.yml logs --tail=50
-        docker compose -f docker compose.prod.yml down
+        docker-compose -f docker-compose.prod.yml logs --tail=50
+        docker-compose -f docker-compose.prod.yml down
         exit 1
     fi
 
@@ -1110,7 +1110,7 @@ mv -Tf "$CURRENT_LINK.tmp" "$CURRENT_LINK"
 
 # 10. Перезапуск на основном порту
 export BACKEND_EXTERNAL_PORT=$((BACKEND_EXTERNAL_PORT - 1))
-docker compose -f docker compose.prod.yml up -d --force-recreate backend
+docker-compose -f docker-compose.prod.yml up -d --force-recreate backend
 
 # Ждем готовности на основном порту
 sleep 5
@@ -1126,7 +1126,7 @@ done
 if [ -n "$PREVIOUS_VERSION" ]; then
     echo "Stopping previous version..."
     cd "$PROJECT_DIR/releases/$PREVIOUS_VERSION"
-    docker compose -f docker compose.prod.yml down || true
+    docker-compose -f docker-compose.prod.yml down || true
 fi
 
 # 12. Обновление Nginx (если нужно)
@@ -1383,7 +1383,7 @@ mv /opt/projects/muscleup/.env.gpg /opt/backups/configs/
 ### Docker Logging Configuration
 
 ```yaml
-# В docker compose.prod.yml для каждого сервиса
+# В docker-compose.prod.yml для каждого сервиса
 logging:
   driver: "json-file"
   options:
@@ -1474,7 +1474,7 @@ echo "Green port: $GREEN_PORT"
 
 # Запуск на green порту
 export BACKEND_EXTERNAL_PORT=$GREEN_PORT
-docker compose -f docker compose.prod.yml up -d
+docker-compose -f docker-compose.prod.yml up -d
 
 # Health check green
 wait_for_health "http://127.0.0.1:$GREEN_PORT/health" 30
@@ -1488,7 +1488,7 @@ docker exec nginx-proxy nginx -s reload
 sleep 10
 
 # Остановка blue
-docker compose -f "$PROJECT_DIR/releases/$PREVIOUS_VERSION/docker compose.prod.yml" down
+docker-compose -f "$PROJECT_DIR/releases/$PREVIOUS_VERSION/docker-compose.prod.yml" down
 
 # Обновление конфига обратно на основной порт
 sed -i "s/server 127.0.0.1:$GREEN_PORT;/server 127.0.0.1:$BLUE_PORT;/" \
@@ -1496,7 +1496,7 @@ sed -i "s/server 127.0.0.1:$GREEN_PORT;/server 127.0.0.1:$BLUE_PORT;/" \
 
 # Финальный перезапуск на blue порту с новой версией
 export BACKEND_EXTERNAL_PORT=$BLUE_PORT
-docker compose -f docker compose.prod.yml up -d --force-recreate backend
+docker-compose -f docker-compose.prod.yml up -d --force-recreate backend
 ```
 
 ### Rolling Updates для WebSocket
@@ -1677,7 +1677,7 @@ git push origin main  # Автоматический деплой через Git
 
 #### Увеличение ресурсов контейнера
 ```yaml
-# docker compose.prod.yml
+# docker-compose.prod.yml
 services:
   backend:
     deploy:
@@ -1696,7 +1696,7 @@ services:
 
 #### Multiple Backend Instances
 ```yaml
-# docker compose.prod.yml - множественные инстансы
+# docker-compose.prod.yml - множественные инстансы
 services:
   backend-1:
     <<: *backend-common

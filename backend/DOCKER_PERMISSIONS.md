@@ -55,7 +55,7 @@ docker ps
 ```bash
 # Временно используйте sudo
 sudo docker ps
-sudo docker compose up -d
+sudo docker-compose up -d
 ```
 
 ⚠️ **Не рекомендуется** для постоянного использования!
@@ -167,7 +167,7 @@ echo "Теперь выйдите и войдите заново: exit, зате
 - name: Run Docker
   run: |
     sudo docker ps
-    sudo docker compose up -d
+    sudo docker-compose up -d
 ```
 
 Или используйте Docker-in-Docker:

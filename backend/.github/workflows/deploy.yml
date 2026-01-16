@@ -150,7 +150,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          source: "docker compose.prod.yml,Dockerfile.prod,nginx/,.env.production"
+          source: "docker-compose.prod.yml,Dockerfile.prod,nginx/,.env.production"
           target: ${{ env.DEPLOY_PATH }}/releases/${{ github.sha }}
           strip_components: 0
 
@@ -215,7 +215,7 @@ jobs:
             cd "$RELEASE_PATH"
 
             # Start new containers
-            docker compose -f docker compose.prod.yml up -d
+            docker-compose -f docker-compose.prod.yml up -d
 
             # Wait for new deployment to be healthy
             echo "⏳ Waiting for new deployment to be healthy..."
@@ -231,7 +231,7 @@ jobs:
 
             if [ "$NEW_HEALTHY" != "true" ]; then
               echo "❌ New deployment failed health check. Rolling back..."
-              docker compose -f docker compose.prod.yml down
+              docker-compose -f docker-compose.prod.yml down
               exit 1
             fi
 
@@ -312,7 +312,7 @@ jobs:
 
             # Switch to previous release
             cd "$PROJECT_PATH/releases/$PREVIOUS_RELEASE"
-            docker compose -f docker compose.prod.yml up -d
+            docker-compose -f docker-compose.prod.yml up -d
 
             # Update symlink
             ln -sfn "$PROJECT_PATH/releases/$PREVIOUS_RELEASE" "$PROJECT_PATH/current"

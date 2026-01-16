@@ -100,8 +100,8 @@ backend/
 │
 ├── 🐳 Docker/
 │   ├── Dockerfile.prod
-│   ├── docker compose.prod.yml
-│   └── docker compose.yml
+│   ├── docker-compose.prod.yml
+│   └── docker-compose.yml
 │
 ├── 🌐 Nginx/
 │   ├── muscleup.conf

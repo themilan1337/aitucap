@@ -221,7 +221,7 @@ sudo systemctl reload nginx
 **Backend Issues:**
 ```bash
 docker logs muscleup_backend
-docker compose -f /opt/projects/muscleup/current/docker compose.prod.yml restart
+docker-compose -f /opt/projects/muscleup/current/docker-compose.prod.yml restart
 ```
 
 **Rollback:**

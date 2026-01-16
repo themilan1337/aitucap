@@ -19,5 +19,5 @@ env/
 .coverage
 htmlcov/
 *.log
-docker compose.yml
+docker-compose.yml
 README.md
