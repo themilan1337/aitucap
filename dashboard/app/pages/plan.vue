@@ -363,7 +363,7 @@ onMounted(() => {
                 icon="heroicons:arrow-path"
                 class="animate-spin"
               />
-              <span v-if="regenerating">AI генерирует план...</span>
+              <span v-if="regenerating">Генерация...</span>
               <span v-else>Создать</span>
             </button>
           </div>
