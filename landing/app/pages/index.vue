@@ -84,7 +84,7 @@ const benefits = [
           <div class="hero-content space-y-8">
             <div class="space-y-4">
               <div class="inline-block px-4 py-2 bg-neon/10 border border-neon/30 rounded-full text-neon text-sm font-medium backdrop-blur-sm">
-                AITU CUP 2026
+                AITU CAP 2026
               </div>
               <h1 class="text-5xl md:text-7xl font-bold leading-tight">
                 Тренируйтесь <br />
@@ -288,7 +288,7 @@ const benefits = [
           </div>
 
           <div class="text-center md:text-right text-gray-500">
-            <p>© 2026 AITU CUP. Made by Milan, Bizhan and Sultan.</p>
+            <p>© 2026 AITU CAP. Made by Milan, Bizhan and Sultan.</p>
           </div>
         </div>
       </div>
