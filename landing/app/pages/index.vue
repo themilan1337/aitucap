@@ -71,9 +71,9 @@ const benefits = [
 const team = [
   {
     name: 'Sultan Karilov',
-    role: 'AI Engineer & Founder',
-    avatar: '👨‍💼',
-    education: 'MBZUAI, выпуск 2030',
+    role: 'AI Engineer',
+    avatar: 'https://media.licdn.com/dms/image/v2/D4D03AQHMj_uHKPgGuw/profile-displayphoto-scale_400_400/B4DZfBaOWhHkAg-/0/1751296568413?e=1770249600&v=beta&t=zISIJQYVypXwG8_6SaFHVpyo9coQlboH-BIAsw4oLXI',
+    education: 'MBZUAI, Class Of 2030',
     experience: 'AI Engineer @ Zimran, основал Runvex (1000+ пользователей), выпускник nFactorial Incubator',
     responsibilities: [
       'Определяет стратегию развития продукта',
@@ -82,14 +82,14 @@ const team = [
       'Контроль ресурсов и планирование развития'
     ],
     social: {
-      linkedin: 'https://linkedin.com/in/sultankarilov',
-      github: 'https://github.com/sultankarilov'
+      linkedin: 'https://www.linkedin.com/in/sultan-karilov-a9abb1362/',
+      github: 'https://github.com/sulta24'
     }
   },
   {
     name: 'Bizhan Ashyhatov',
     role: 'iOS & AI Engineer',
-    avatar: '👨‍💻',
+    avatar: 'https://media.licdn.com/dms/image/v2/D4D03AQGsONoaf48xcw/profile-displayphoto-shrink_400_400/B4DZhhQaPSHwAg-/0/1753978350464?e=1770249600&v=beta&t=YBY6_0-WJchv9twLQbncybJBeTT74-Z4cODUO3MUPqs',
     education: 'AITU, 2 курс',
     experience: 'Основатель AuarAI (приобретена), CO-CEO в BachOpus, приложения с аудиторией 50k+, выпускник nFactorial Incubator',
     responsibilities: [
@@ -99,15 +99,15 @@ const team = [
       'Маркетинг и управление продвижением продукта'
     ],
     social: {
-      linkedin: 'https://linkedin.com/in/bizhanashyhatov',
-      github: 'https://github.com/bizhan'
+      linkedin: 'https://www.linkedin.com/in/bizhanchik/',
+      github: 'https://github.com/bizhanchik/'
     }
   },
   {
-    name: 'Milan Gorislavetz',
+    name: 'Milan Gorislavets',
     role: 'Fullstack Engineer',
-    avatar: '🧑‍💻',
-    education: 'Выпускник Seitzhan School',
+    avatar: 'https://media.licdn.com/dms/image/v2/D4E03AQE4nmQk2sW0kA/profile-displayphoto-scale_400_400/B4EZqndwLsKcAg-/0/1763746207137?e=1770249600&v=beta&t=RPx_xsg0ZaC58j-oppLiCuT81REaVdeSfbl97KZ7wAI',
+    education: 'Seitzhan School',
     experience: 'Основатель SereneAI, CatOps, fckvibecode, ведущий frontend инженер',
     responsibilities: [
       'Разработка фронтенда и бэкенда',
@@ -324,8 +324,16 @@ const team = [
           >
             <!-- Avatar & Role -->
             <div class="text-center mb-6">
-              <div class="w-24 h-24 mx-auto mb-4 rounded-2xl bg-neon/10 flex items-center justify-center text-5xl group-hover:bg-neon/20 transition-all duration-300">
-                {{ member.avatar }}
+              <div class="w-24 h-24 mx-auto mb-4 rounded-2xl overflow-hidden group-hover:ring-2 group-hover:ring-neon/50 transition-all duration-300">
+                <img
+                  v-if="member.avatar.startsWith('http')"
+                  :src="member.avatar"
+                  :alt="member.name"
+                  class="w-full h-full object-cover"
+                />
+                <div v-else class="w-full h-full bg-neon/10 flex items-center justify-center text-5xl group-hover:bg-neon/20 transition-all duration-300">
+                  {{ member.avatar }}
+                </div>
               </div>
               <h3 class="text-2xl font-bold mb-1">{{ member.name }}</h3>
               <p class="text-neon font-semibold text-sm">{{ member.role }}</p>
